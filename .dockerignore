@@ -1,6 +1,6 @@
 **/bin/
 **/obj/
-.git/
+# .git is kept: the SDK stamps the commit into the build, which the Settings → Updates check uses.
 .vs/
 .impeccable/
 logs/
@@ -10,3 +10,4 @@ prod-dump/
 tests/
 *.md
 !README.md
+docs/

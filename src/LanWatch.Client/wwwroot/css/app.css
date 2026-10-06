@@ -427,8 +427,29 @@ textarea {
   color: var(--kraft-ink-2);
 }
 
-.rail-foot button {
-  justify-self: start;
+.rail-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+
+.btn.icon-only {
+  width: 26px;
+  padding: 0;
+  justify-content: center;
+}
+
+.rail-update {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 650;
+  color: var(--kraft-ink);
+  text-decoration: none;
+}
+
+.rail-update:hover {
+  text-decoration: underline;
 }
 
 .main {
@@ -736,6 +757,10 @@ textarea {
 .fields.cols-4 { --cols: 4; }
 .fields.cols-5 { --cols: 5; }
 
+.fields .data {
+  overflow-wrap: anywhere;
+}
+
 .fields .figure {
   font-size: var(--fs-23);
 }
@@ -851,17 +876,6 @@ table.manifest .tight {
   object-fit: cover;
   outline: 1px solid var(--rule);
   outline-offset: -1px;
-}
-
-.game .art.blank {
-  display: grid;
-  place-items: center;
-  color: var(--ink-3);
-}
-
-.game .art.blank .icon {
-  width: 13px;
-  height: 13px;
 }
 
 .game .name {
@@ -1642,4 +1656,19 @@ table.manifest tr.done .split {
 
 .fields .split {
   justify-self: stretch;
+}
+
+/* Fallback art: a pallet label in the service colour with the title's initials. */
+.game .art.label-tile {
+  display: grid;
+  place-items: center;
+  outline: 0;
+  border: 1px solid var(--svc, var(--svc-other));
+  background: color-mix(in srgb, var(--svc, var(--svc-other)) 16%, var(--paper-raised));
+  color: var(--ink);
+  font-size: 10.5px;
+  font-weight: 800;
+  font-stretch: 75%;
+  letter-spacing: 0.08em;
+  line-height: 1;
 }

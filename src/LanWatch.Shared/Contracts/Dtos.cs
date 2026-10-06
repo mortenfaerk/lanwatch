@@ -90,7 +90,7 @@ public sealed record StreamHostDto(string SniHost, long Connections, long BytesS
 
 public sealed record SettingsDto(IReadOnlyList<string> ExcludedIps);
 
-public sealed record SystemDto(string LogsPath, IReadOnlyList<string> DockerGatewayIps, int SessionGapMinutes, IngestSummary Ingest, string? DepotMapVersion, int DepotMapCount);
+public sealed record SystemDto(string LogsPath, IReadOnlyList<string> DockerGatewayIps, int SessionGapMinutes, IngestSummary Ingest, string? DepotMapVersion, int DepotMapCount, bool SteamGridDbEnabled = false);
 
 // ---- Live feed (SignalR "tick", every ~2 s) ----
 

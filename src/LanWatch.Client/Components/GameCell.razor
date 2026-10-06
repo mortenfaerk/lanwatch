@@ -1,11 +1,12 @@
 <div class="game">
-    @if (Content.ArtUrl is not null && !_artFailed)
+    @if (Content.ArtUrl is not null && Content.ArtUrl != _failedUrl)
     {
-        <img class="art" src="@Content.ArtUrl" alt="" loading="lazy" @onerror="() => _artFailed = true" />
+        <img class="art" src="@Content.ArtUrl" alt="" loading="lazy" @onerror="() => _failedUrl = Content.ArtUrl" />
     }
     else
     {
-        <span class="art blank" aria-hidden="true"><Icon Name="package" /></span>
+        @* No art: a pallet label in the service colour, carrying the title's initials. *@
+        <span class="art label-tile" style="@Svc.Var(Content.Service)" aria-hidden="true">@Initials(Content.Name)</span>
     }
     <div class="name">
         <b title="@Content.Name">@Content.Name</b>
@@ -20,5 +21,24 @@
     [Parameter, EditorRequired] public ContentInfo Content { get; set; } = default!;
     [Parameter] public bool ShowService { get; set; } = true;
 
-    private bool _artFailed;
+    // Remember which URL failed, so a re-render (live ticks) does not retry it, but a new title still loads.
+    private string? _failedUrl;
+
+    private static readonly HashSet<string> Filler = new(StringComparer.OrdinalIgnoreCase) { "of", "the", "and", "a", "an", "for", "to" };
+
+    internal static string Initials(string name)
+    {
+        var words = name.Split([' ', ':', '-', '.', '_'], StringSplitOptions.RemoveEmptyEntries)
+            .Where(w => char.IsLetterOrDigit(w[0]))
+            .ToArray();
+        // Skip filler words so "League of Legends" reads LL, not LO.
+        var significant = words.Where(w => !Filler.Contains(w)).ToArray();
+        if (significant.Length > 0) words = significant;
+        return words.Length switch
+        {
+            0 => "?",
+            1 => words[0][..Math.Min(2, words[0].Length)].ToUpperInvariant(),
+            _ => string.Concat(words.Take(2).Select(w => char.ToUpperInvariant(w[0]))),
+        };
+    }
 }

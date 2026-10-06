@@ -310,10 +310,10 @@ Plain, ink-framed, typed-form buttons.
 - **Error:** stamp-red border; error text in stamp red with an icon.
 
 ### Navigation
-The rail is a kraft folder. Condensed uppercase wordmark (800, width 80%) with a small-caps subtitle. 36px links in Archivo 560 with 16px Lucide icons; hover is kraft-2; the active link becomes a paper tab running into the sheet. The Errors link carries a stamp-red count pill. Health checks and the log-reader state sit in the rail foot above Sign out. On mobile it becomes a horizontal icon strip with 44px tabs.
+The rail is a kraft folder. Condensed uppercase wordmark (800, width 80%) with a small-caps subtitle. 36px links in Archivo 560 with 16px Lucide icons; hover is kraft-2; the active link becomes a paper tab running into the sheet. The Errors link carries a stamp-red count pill. Health checks and the log-reader state sit in the rail foot above Sign out, which shares a row with a square GitHub icon button (the source link). An "Update available · N new" line appears above them only when GitHub has newer commits. On mobile it becomes a horizontal icon strip with 44px tabs.
 
 ### Manifest Table (signature)
-Ruled consignment lines. A sticky form-tint header in label type over a frame rule; 34px rows ruled in rule; numbers right-aligned in mono; row hover in row-hover. The client cell sets name or IP on the first line and a muted mono docket number (DL-00620) on a second line. Gateway-hidden clients say so in words. Game cells pair a 46×22 header-art thumb with the name and a service swatch line. Group breaks ("Finished recently") use a label-type sub-head row; finished rows step down to ink-2.
+Ruled consignment lines. A sticky form-tint header in label type over a frame rule; 34px rows ruled in rule; numbers right-aligned in mono; row hover in row-hover. The client cell sets name or IP on the first line and a muted mono docket number (DL-00620) on a second line. Gateway-hidden clients say so in words. Game cells pair a 46×22 header-art thumb with the name and a service swatch line. Without art, the thumb becomes a pallet label tile: 1px border in the service hue, a 16% service-hue wash on the raised sheet, and the title's initials in 800 condensed caps (filler words such as "of" skipped). It is never a generic box icon. Group breaks ("Finished recently") use a label-type sub-head row; finished rows step down to ink-2.
 
 ### Split Bar (signature)
 The persistent second voice. An 8px bar, hit then miss with a 2px gap and 2px outer corners, and a muted mono line beneath ("68% cached · 934 MB in"). The empty state is a plain rule bar. It appears on every consignment row and under the ledger.
@@ -329,6 +329,9 @@ Stacked hit-over-miss bars on rule gridlines with a frame baseline and 10.5px mo
 
 ### Service Mix
 One 14px segmented 100% bar in service hues, then a four-column list: swatch, name, muted share, mono bytes.
+
+### Command Lines (Settings → Updates)
+Shell commands are set as typed docket lines. Each sits in a boxed raised sheet with a rule-strong border, the command in 13px mono (scrolling sideways, never wrapping), and a small "Copy" button that turns to a check and "Copied" for 2 s. The steps are numbered in the label above each box ("1 · Get the new code"), because the order matters.
 
 ## Do's and Don'ts
 

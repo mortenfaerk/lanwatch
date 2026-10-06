@@ -2,38 +2,14 @@ using System.Collections.Concurrent;
 using LanWatch.Server.Data;
 using LanWatch.Shared.Contracts;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace LanWatch.Server.Content;
 
 /// <summary>Turns (service, content id) into something a human recognises: a game name and artwork.</summary>
-public sealed class ContentCatalog(IDbContextFactory<LanWatchDb> dbFactory)
+public sealed class ContentCatalog(IDbContextFactory<LanWatchDb> dbFactory, IOptions<LanWatchOptions> options)
 {
     private readonly ConcurrentDictionary<long, (long AppId, string Name)?> _steam = new();
-
-    // Blizzard's TACT product codes as they appear in /tpr/{code}/ paths.
-    private static readonly Dictionary<string, string> Blizzard = new(StringComparer.OrdinalIgnoreCase)
-    {
-        ["ovw"] = "Overwatch 2", ["pro"] = "Overwatch 2", ["sc2"] = "StarCraft II", ["s1"] = "StarCraft",
-        ["Hero-Live-a"] = "Heroes of the Storm", ["hs"] = "Hearthstone", ["wow"] = "World of Warcraft",
-        ["fenris"] = "Diablo IV", ["d3"] = "Diablo III", ["w3"] = "Warcraft III", ["odin"] = "Call of Duty",
-        ["viper"] = "Call of Duty: Black Ops 4", ["zeus"] = "Call of Duty: Black Ops Cold War",
-        ["auks"] = "Call of Duty", ["bna"] = "Battle.net", ["agent"] = "Battle.net Agent", ["wlby"] = "Crash Bandicoot 4",
-        ["anbs"] = "Diablo Immortal", ["gryphon"] = "Warcraft Rumble",
-        // Launcher plumbing rather than games.
-        ["catalogs"] = "Battle.net catalog data", ["configs"] = "Battle.net configuration",
-        ["bnt001"] = "Battle.net app", ["bnt002"] = "Battle.net app",
-    };
-
-    private static readonly Dictionary<string, string> Riot = new(StringComparer.OrdinalIgnoreCase)
-    {
-        ["lol"] = "League of Legends", ["valorant"] = "VALORANT", ["bacon"] = "Legends of Runeterra",
-        ["riot-client"] = "Riot Client",
-    };
-
-    private static readonly Dictionary<string, string> Epic = new(StringComparer.OrdinalIgnoreCase)
-    {
-        ["fortnite"] = "Fortnite", ["UnrealEngineLauncher"] = "Epic Games Launcher",
-    };
 
     // Apps the depot dataset leaves unnamed but every LAN downloads.
     private static readonly Dictionary<long, string> SteamKnownApps = new()
@@ -90,12 +66,8 @@ public sealed class ContentCatalog(IDbContextFactory<LanWatchDb> dbFactory)
                         $"/api/art/steam/{a.AppId}",
                         $"https://store.steampowered.com/app/{a.AppId}");
                 return new ContentInfo(service, id, $"Steam depot {id}", null, $"https://steamdb.info/depot/{id}/");
-            case "blizzard":
-                return new ContentInfo(service, id, Blizzard.GetValueOrDefault(id, $"Blizzard {id}"), null, null);
-            case "riot":
-                return new ContentInfo(service, id, Riot.GetValueOrDefault(id, $"Riot {id}"), null, null);
-            case "epicgames":
-                return new ContentInfo(service, id, Epic.GetValueOrDefault(id, id), null, null);
+            case "blizzard" or "riot" or "epicgames":
+                return Launcher(service, id);
             case "sony":
                 return new ContentInfo(service, id, $"PlayStation {id}", null, null);
             case "wsus":
@@ -103,5 +75,27 @@ public sealed class ContentCatalog(IDbContextFactory<LanWatchDb> dbFactory)
             default:
                 return new ContentInfo(service, id, id, null, null);
         }
+    }
+
+    /// <summary>
+    /// Names a Battle.net, Epic or Riot code. Art comes from Steam when the game is also sold there; otherwise from
+    /// SteamGridDB when an API key is configured. Launcher plumbing gets no art.
+    /// </summary>
+    private ContentInfo Launcher(string service, string id)
+    {
+        var product = KnownProducts.Find(service, id);
+        if (product is null)
+        {
+            var prefix = service switch { "blizzard" => "Battle.net", "riot" => "Riot", _ => "Epic" };
+            return new ContentInfo(service, id, $"{prefix} {id}", null, null);
+        }
+
+        string? art = null;
+        if (!product.Infrastructure)
+        {
+            if (product.SteamAppId is { } steamApp) art = $"/api/art/steam/{steamApp}";
+            else if (!string.IsNullOrWhiteSpace(options.Value.SteamGridDbApiKey)) art = $"/api/art/sgdb/{service}/{Uri.EscapeDataString(id)}";
+        }
+        return new ContentInfo(service, id, product.Name, art, product.StoreUrl);
     }
 }

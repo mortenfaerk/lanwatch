@@ -1,0 +1,28 @@
+@* Rail foot actions: sign out, the source on GitHub, and a nudge when a newer version exists. *@
+@inject Api Api
+@inject Session Session
+
+@if (_version is { State: UpdateState.UpdateAvailable } v)
+{
+    <a class="rail-update" href="settings#updates">
+        <Icon Name="circle-arrow-up" /> Update available · @v.CommitsBehind new
+    </a>
+}
+<div class="rail-actions">
+    <button class="btn sm on-kraft" @onclick="Session.LogoutAsync"><Icon Name="log-out" /> Sign out</button>
+    <a class="btn sm on-kraft icon-only" href="@(_version?.RepositoryUrl ?? DefaultRepo)" target="_blank" rel="noopener"
+       title="@($"LanWatch on GitHub{(_version?.ShortCommit is { } c ? $" · build {c}" : "")}")" aria-label="LanWatch on GitHub">
+        <Icon Name="github" />
+    </a>
+</div>
+
+@code {
+    private const string DefaultRepo = "https://github.com/mortenfaerk/lanwatch";
+    private VersionDto? _version;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try { _version = await Api.Version(); }
+        catch (HttpRequestException) { /* the link still works with the default URL */ }
+    }
+}

@@ -42,7 +42,7 @@ else
             <div class="rail-foot">
                 <RailHealth />
                 <IngestState />
-                <button class="btn sm on-kraft" @onclick="LogoutAsync"><Icon Name="log-out" /> Sign out</button>
+                <RailLinks />
             </div>
         </nav>
 
@@ -86,8 +86,6 @@ else
     }
 
     private void OnChanged() => InvokeAsync(StateHasChanged);
-
-    private Task LogoutAsync() => Session.LogoutAsync();
 
     public void Dispose()
     {

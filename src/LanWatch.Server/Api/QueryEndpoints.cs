@@ -50,6 +50,15 @@ public static class QueryEndpoints
             http.Response.Headers.CacheControl = "private, max-age=604800";
             return Results.File(file, "image/jpeg");
         });
+
+        api.MapGet("/art/sgdb/{service}/{id}", async (string service, string id, ArtCache art, HttpContext http, CancellationToken ct) =>
+        {
+            if (KnownProducts.Find(service, id) is not { Infrastructure: false } product) return Results.NotFound();
+            var file = await art.GetSteamGridDbAsync(product.Name, ct);
+            if (file is null) return Results.NotFound();
+            http.Response.Headers.CacheControl = "private, max-age=604800";
+            return Results.File(file, ArtCache.ContentTypeOf(file));
+        });
     }
 
     // ---- scope ----
@@ -238,7 +247,7 @@ public static class QueryEndpoints
 
         // Several depots usually belong to one game; merge them so a game appears once.
         return rows
-            .GroupBy(r => content[(r.Service, r.ContentId)] is var c && c.ArtUrl is not null ? $"{c.Service}:{c.Name}" : $"{r.Service}:{r.ContentId}")
+            .GroupBy(r => content[(r.Service, r.ContentId)] is var c ? $"{c.Service}:{c.Name}" : "")
             .Select(g => new ContentTotalDto(content[(g.First().Service, g.First().ContentId)],
                 g.Sum(r => r.Hit), g.Sum(r => r.Miss), g.Max(r => r.Clients), g.Sum(r => r.Sessions), g.Max(r => r.Last)))
             .OrderByDescending(c => c.HitBytes + c.MissBytes)
@@ -345,7 +354,8 @@ public static class QueryEndpoints
     {
         var o = options.Value;
         var version = await db.Settings.Where(s => s.Key == SteamDepotMapper.VersionSetting).Select(s => s.Value).FirstOrDefaultAsync(ct);
-        return new SystemDto(o.LogsPath, o.DockerGatewayIps, o.SessionGapMinutes, Summarize(ingest), version, await db.SteamDepots.CountAsync(ct));
+        return new SystemDto(o.LogsPath, o.DockerGatewayIps, o.SessionGapMinutes, Summarize(ingest), version, await db.SteamDepots.CountAsync(ct),
+            !string.IsNullOrWhiteSpace(o.SteamGridDbApiKey));
     }
 
     internal static IngestSummary Summarize(IngestStatus s) => new(

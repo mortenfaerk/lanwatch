@@ -47,11 +47,15 @@
         }
         else
         {
-            <div class="fields cols-4">
+            <div class="fields cols-5">
                 <div><span class="label">Logs folder</span><span class="data">@_system.LogsPath</span></div>
                 <div><span class="label">Docker gateway IPs</span><span class="data">@string.Join(", ", _system.DockerGatewayIps)</span></div>
                 <div><span class="label">New download after</span><span class="data">@_system.SessionGapMinutes min idle</span></div>
                 <div><span class="label">Steam game names</span><span class="data">@(_system.DepotMapVersion is null ? "not loaded (offline?)" : $"{Format.Count(_system.DepotMapCount)} depots · v{_system.DepotMapVersion}")</span></div>
+                <div>
+                    <span class="label">Battle.net / Epic / Riot art</span>
+                    <span class="data">@(_system.SteamGridDbEnabled ? "Steam + SteamGridDB" : "Steam only (set STEAMGRIDDB_API_KEY)")</span>
+                </div>
             </div>
             <div class="panel-body flush table-wrap">
                 <table class="manifest">
@@ -95,6 +99,8 @@
             </div>
         }
     </section>
+
+    <UpdatesPanel />
 </div>
 @if (_error is not null)
 {

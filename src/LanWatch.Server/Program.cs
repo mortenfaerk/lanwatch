@@ -9,6 +9,7 @@ using LanWatch.Server.Ingestion;
 using LanWatch.Server.Live;
 using LanWatch.Shared.Contracts;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
@@ -38,6 +39,7 @@ builder.Services.AddHostedService<IngestionService>();
 builder.Services.AddSingleton<ContentCatalog>();
 builder.Services.AddSingleton<ArtCache>();
 builder.Services.AddSingleton<ClientDirectory>();
+builder.Services.AddSingleton<UpdateChecker>();
 builder.Services.AddHostedService<SteamDepotMapper>();
 builder.Services.AddHttpClient("github", c =>
 {
@@ -87,22 +89,48 @@ EnsurePassword(app);
 if (app.Environment.IsDevelopment())
     app.UseWebAssemblyDebugging();
 
+// Behind a reverse proxy (nginx with TLS): take the client IP and scheme from X-Forwarded-*, so the login rate
+// limit is per client rather than per proxy and the session cookie is marked Secure. Only proxies on the
+// TRUSTED_PROXIES networks are believed (private ranges by default), so a client cannot spoof its address.
+app.UseForwardedHeaders(ForwardedHeadersFor(app.Configuration));
+
 app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Fingerprinted, pre-compressed WASM assets (also rewrites the #[.{fingerprint}] placeholders in index.html).
+// Fingerprinted, pre-compressed WASM assets.
 app.MapStaticAssets();
 app.MapAuthEndpoints();
 app.MapQueryEndpoints();
 app.MapExceptionEndpoints();
 app.MapGet("/api/health", (HealthState h) => h.Health).RequireAuthorization();
+app.MapGet("/api/version", (bool? refresh, UpdateChecker updates, CancellationToken ct) => updates.GetAsync(refresh == true, ct)).RequireAuthorization();
 app.MapGet("/api/adguard", (HealthState h) => h.AdGuard).RequireAuthorization();
 app.MapHub<LiveHub>(LiveHubContract.Path);
 app.MapGet("/healthz", (IngestStatus s) => Results.Ok(new { s.CaughtUp, s.LastCycle })).AllowAnonymous();
 app.MapFallbackToFile("index.html");
 
 app.Run();
+
+static ForwardedHeadersOptions ForwardedHeadersFor(IConfiguration config)
+{
+    var options = new ForwardedHeadersOptions
+    {
+        ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
+        ForwardLimit = 1,
+    };
+    options.KnownIPNetworks.Clear();
+    options.KnownProxies.Clear();
+    var trusted = config["TRUSTED_PROXIES"] is { Length: > 0 } list
+        ? Split(list)
+        : ["127.0.0.0/8", "::1/128", "10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"];
+    foreach (var entry in trusted)
+    {
+        if (System.Net.IPNetwork.TryParse(entry, out var network)) options.KnownIPNetworks.Add(network);
+        else if (System.Net.IPAddress.TryParse(entry, out var ip)) options.KnownProxies.Add(ip);
+    }
+    return options;
+}
 
 static async Task InitializeDatabaseAsync(IServiceProvider services)
 {
@@ -138,6 +166,9 @@ static void ApplyFlatEnvironment(LanWatchOptions o, IConfiguration c)
     if (c["ADGUARD_URL"] is { Length: > 0 } au) o.AdGuardUrl = au;
     if (c["ADGUARD_USER"] is { Length: > 0 } auser) o.AdGuardUser = auser;
     if (c["ADGUARD_PASSWORD"] is { Length: > 0 } apw) o.AdGuardPassword = apw;
+    if (c["STEAMGRIDDB_API_KEY"] is { Length: > 0 } sgdb) o.SteamGridDbApiKey = sgdb;
+    if (c["LANWATCH_REPOSITORY"] is { Length: > 0 } repo) o.RepositoryUrl = repo.TrimEnd('/');
+    if (c["GITHUB_TOKEN"] is { Length: > 0 } gh) o.GitHubToken = gh;
     if (c["ADGUARD_IGNORE_CLIENTS"] is { Length: > 0 } aic) o.AdGuardIgnoreClients = Split(aic);
     o.LogsPath = Path.GetFullPath(o.LogsPath);
     o.DataPath = Path.GetFullPath(o.DataPath);

@@ -19,6 +19,7 @@ public sealed class Api(HttpClient http, Session session, ScopeState scope)
     public Task<List<StreamHostDto>?> Stream() => Get<List<StreamHostDto>>("api/stream");
     public Task<ExceptionsDto?> Exceptions() => Get<ExceptionsDto>("api/exceptions");
     public Task<SystemDto?> System() => Get<SystemDto>("api/system", scoped: false);
+    public Task<VersionDto?> Version(bool refresh = false) => Get<VersionDto>($"api/version{(refresh ? "?refresh=true" : "")}", scoped: false);
     public Task<HealthDto?> Health() => Get<HealthDto>("api/health", scoped: false);
     public Task<AdGuardDto?> AdGuard() => Get<AdGuardDto>("api/adguard", scoped: false);
     public Task<SettingsDto?> Settings() => Get<SettingsDto>("api/settings", scoped: false);

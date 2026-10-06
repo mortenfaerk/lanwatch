@@ -9,7 +9,8 @@ COPY src/LanWatch.Client/LanWatch.Client.csproj src/LanWatch.Client/
 COPY src/LanWatch.Server/LanWatch.Server.csproj src/LanWatch.Server/
 RUN dotnet restore src/LanWatch.Server/LanWatch.Server.csproj
 
-COPY src/ src/
+# Copy the sources plus .git (if present) so the build knows which commit it is.
+COPY . .
 RUN dotnet publish src/LanWatch.Server/LanWatch.Server.csproj -c Release -o /app --no-restore
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime

@@ -60,6 +60,21 @@ public class LanWatchOptions
 
     public int ProbeIntervalSeconds { get; set; } = 30;
 
+    // ---- Game art ----
+
+    /// <summary>Optional SteamGridDB API key: art for Battle.net, Epic and Riot games (free key at steamgriddb.com/profile/preferences).</summary>
+    public string? SteamGridDbApiKey { get; set; }
+
+    // ---- Updates ----
+
+    /// <summary>Where the LanWatch source lives; used for the GitHub link and the update check.</summary>
+    public string RepositoryUrl { get; set; } = "https://github.com/mortenfaerk/lanwatch";
+
+    public string UpdateBranch { get; set; } = "master";
+
+    /// <summary>Optional read-only GitHub token, needed only when the repository is private.</summary>
+    public string? GitHubToken { get; set; }
+
     // ---- AdGuard Home ----
 
     public string? AdGuardUrl { get; set; }

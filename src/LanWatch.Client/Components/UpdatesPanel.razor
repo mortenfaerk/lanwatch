@@ -1,0 +1,142 @@
+@* Settings → Updates: which build is running, whether GitHub has newer commits, and how to update. *@
+@inject Api Api
+@inject IJSRuntime JS
+
+<section class="panel span-12" id="updates" aria-labelledby="upd-h">
+    <header class="panel-head">
+        <h2 id="upd-h">Updates</h2>
+        <div class="meta">
+            @if (_version?.CheckedUnix is { } checkedAt)
+            {
+                <span>Checked @Format.Ago(checkedAt)</span>
+            }
+            <button class="btn sm" @onclick="RefreshAsync" disabled="@_checking"><Icon Name="refresh-cw" /> @(_checking ? "Checking…" : "Check now")</button>
+        </div>
+    </header>
+
+    @if (_version is null)
+    {
+        <div class="panel-body"><span class="skeleton"></span></div>
+    }
+    else
+    {
+        var v = _version;
+        <div class="fields cols-3">
+            <div>
+                <span class="label">Running build</span>
+                @if (v.Commit is not null)
+                {
+                    <a class="data" href="@($"{v.RepositoryUrl}/commit/{v.Commit}")" target="_blank" rel="noopener">@v.ShortCommit</a>
+                }
+                else
+                {
+                    <span class="muted">unknown</span>
+                }
+            </div>
+            <div>
+                <span class="label">Built</span>
+                <span class="data">@(v.BuiltUnix is { } b ? Format.DayTime(b) : "–")</span>
+            </div>
+            <div>
+                <span class="label">Status</span>
+                @switch (v.State)
+                {
+                    case UpdateState.UpToDate:
+                        <span class="tag good"><Icon Name="circle-check" />Up to date with @v.Branch</span>
+                        break;
+                    case UpdateState.UpdateAvailable:
+                        <span class="tag warn"><Icon Name="circle-arrow-up" />@v.CommitsBehind new @(v.CommitsBehind == 1 ? "commit" : "commits") on @v.Branch</span>
+                        break;
+                    case UpdateState.Ahead:
+                        <span class="tag"><Icon Name="git-commit-horizontal" />Newer than GitHub</span>
+                        break;
+                    default:
+                        <span class="tag"><Icon Name="circle-help" />Unknown</span>
+                        break;
+                }
+                @if (v.Error is not null)
+                {
+                    <span class="secondary" style="font-size:var(--fs-12)">@v.Error</span>
+                }
+            </div>
+        </div>
+
+        @if (v.NewCommits.Count > 0)
+        {
+            <div class="panel-body flush table-wrap">
+                <table class="manifest">
+                    <thead><tr><th class="tight">Commit</th><th>What changed</th><th class="num">When</th></tr></thead>
+                    <tbody>
+                        @foreach (var c in v.NewCommits)
+                        {
+                            <tr>
+                                <td class="data tight"><a href="@c.Url" target="_blank" rel="noopener">@c.Sha[..7]</a></td>
+                                <td>@c.Message</td>
+                                <td class="num data">@Format.DayTime(c.Unix)</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
+        <div class="panel-body stack update-guide">
+            <p class="secondary">
+                To update, run these on the cache VM. History is kept: it lives in the <span class="data">lanwatch-data</span> volume.
+                The paths assume the LanWatch clone sits next to the lancache folder, as in the README.
+            </p>
+            @foreach (var (label, command) in Commands)
+            {
+                <div class="field">
+                    <span class="label">@label</span>
+                    <div class="command">
+                        <code>@command</code>
+                        <button class="btn sm" @onclick="() => CopyAsync(command)" aria-label="@($"Copy: {label}")">
+                            <Icon Name="@(_copied == command ? "check" : "copy")" /> @(_copied == command ? "Copied" : "Copy")
+                        </button>
+                    </div>
+                </div>
+            }
+            <p class="muted" style="font-size:var(--fs-12)">
+                LanWatch does not update itself: that would need the Docker socket mounted into it, which is root access to the VM.
+            </p>
+        </div>
+    }
+</section>
+
+@code {
+    private static readonly (string Label, string Command)[] Commands =
+    [
+        ("1 · Get the new code", "git -C ~/lanwatch pull"),
+        ("2 · Rebuild and restart LanWatch", "cd ~/lancache && docker compose -f docker-compose.yml -f docker-compose.lanwatch.yml up -d --build lanwatch"),
+    ];
+
+    private VersionDto? _version;
+    private bool _checking;
+    private string? _copied;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try { _version = await Api.Version(); }
+        catch (HttpRequestException) { }
+    }
+
+    private async Task RefreshAsync()
+    {
+        _checking = true;
+        try { _version = await Api.Version(refresh: true) ?? _version; }
+        catch (HttpRequestException) { }
+        finally { _checking = false; }
+    }
+
+    private async Task CopyAsync(string command)
+    {
+        if (await JS.InvokeAsync<bool>("lanwatch.copy", command))
+        {
+            _copied = command;
+            StateHasChanged();
+            await Task.Delay(2000);
+            if (_copied == command) _copied = null;
+        }
+    }
+}

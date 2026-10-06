@@ -14,6 +14,8 @@ services:
     restart: unless-stopped
     ports:
       - 8080:8080                  # 80/443 belong to monolithic
+      # Behind nginx on the same host, publish to localhost only instead:
+      # - 127.0.0.1:8080:8080
     volumes:
       - ${CACHE_ROOT}/logs:/logs:ro
       - ${CACHE_ROOT}/cache:/cache:ro   # disk usage only
@@ -30,6 +32,12 @@ services:
       ADGUARD_URL: ${ADGUARD_URL:-}
       ADGUARD_USER: ${ADGUARD_USER:-}
       ADGUARD_PASSWORD: ${ADGUARD_PASSWORD:-}
+      # Optional: art for Battle.net / Epic / Riot games (free key: https://www.steamgriddb.com/profile/preferences)
+      STEAMGRIDDB_API_KEY: ${STEAMGRIDDB_API_KEY:-}
+      # Only for a private repository: read-only token so Settings → Updates can compare with GitHub
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+      # Reverse proxies whose X-Forwarded-For/Proto are trusted (default: private ranges)
+      # TRUSTED_PROXIES: 10.0.0.5
       # Requests via Docker's userland proxy arrive from the bridge gateway
       DOCKER_GATEWAY_IPS: 172.17.0.1,172.18.0.1
     # If lancache logs are not world-readable (ls -l ${CACHE_ROOT}/logs), uncomment to read them as root:

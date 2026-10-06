@@ -12,3 +12,4 @@ obj/
 .impeccable/config.local.json
 .impeccable/review/
 /prod-dump/
+data-run.log
