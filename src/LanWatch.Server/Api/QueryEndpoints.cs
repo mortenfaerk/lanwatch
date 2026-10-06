@@ -43,6 +43,15 @@ public static class QueryEndpoints
         });
         api.MapGet("/system", SystemInfo);
 
+        api.MapGet("/settings/art", (GameArtSettings art) => art.ToDto());
+        api.MapPut("/settings/art", async (ArtKeyRequest body, GameArtSettings art, CancellationToken ct) =>
+            await art.SaveAsync(body.ApiKey ?? "", ct) is { } problem ? Results.BadRequest(problem) : Results.Ok(art.ToDto()));
+        api.MapDelete("/settings/art", async (GameArtSettings art, CancellationToken ct) =>
+        {
+            await art.ClearAsync(ct);
+            return Results.Ok(art.ToDto());
+        });
+
         api.MapGet("/art/steam/{appId:long}", async (long appId, ArtCache art, HttpContext http, CancellationToken ct) =>
         {
             var file = await art.GetSteamHeaderAsync(appId, ct);
@@ -350,12 +359,12 @@ public static class QueryEndpoints
 
     // ---- system ----
 
-    private static async Task<SystemDto> SystemInfo(LanWatchDb db, IngestStatus ingest, IOptions<LanWatchOptions> options, CancellationToken ct)
+    private static async Task<SystemDto> SystemInfo(LanWatchDb db, IngestStatus ingest, IOptions<LanWatchOptions> options, GameArtSettings art, CancellationToken ct)
     {
         var o = options.Value;
         var version = await db.Settings.Where(s => s.Key == SteamDepotMapper.VersionSetting).Select(s => s.Value).FirstOrDefaultAsync(ct);
         return new SystemDto(o.LogsPath, o.DockerGatewayIps, o.SessionGapMinutes, Summarize(ingest), version, await db.SteamDepots.CountAsync(ct),
-            !string.IsNullOrWhiteSpace(o.SteamGridDbApiKey));
+            art.ApiKey is not null);
     }
 
     internal static IngestSummary Summarize(IngestStatus s) => new(

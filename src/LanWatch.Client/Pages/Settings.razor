@@ -24,20 +24,24 @@
         </div>
     </section>
 
-    <section class="panel span-6" style="align-self:start" aria-labelledby="th-h">
-        <header class="panel-head"><h2 id="th-h">Appearance</h2></header>
-        <div class="panel-body stack" style="gap:var(--s-3)">
-            <label class="field" style="max-width:260px">
-                <span class="label">Theme</span>
-                <select class="select" value="@_theme" @onchange="SetTheme">
-                    <option value="system">Match this computer</option>
-                    <option value="light">Manifest paper (light)</option>
-                    <option value="dark">Carbon copy (dark)</option>
-                </select>
-            </label>
-            <p class="muted" style="font-size:var(--fs-12)">Saved in this browser only.</p>
-        </div>
-    </section>
+    <div class="span-6 stack">
+        <section class="panel" aria-labelledby="th-h">
+            <header class="panel-head"><h2 id="th-h">Appearance</h2></header>
+            <div class="panel-body stack" style="gap:var(--s-3)">
+                <label class="field" style="max-width:260px">
+                    <span class="label">Theme</span>
+                    <select class="select" value="@_theme" @onchange="SetTheme">
+                        <option value="system">Match this computer</option>
+                        <option value="light">Manifest paper (light)</option>
+                        <option value="dark">Carbon copy (dark)</option>
+                    </select>
+                </label>
+                <p class="muted" style="font-size:var(--fs-12)">Saved in this browser only.</p>
+            </div>
+        </section>
+
+        <GameArtPanel />
+    </div>
 
     <section class="panel span-12" aria-labelledby="sys-h">
         <header class="panel-head"><h2 id="sys-h">Log reader</h2></header>
@@ -47,15 +51,11 @@
         }
         else
         {
-            <div class="fields cols-5">
+            <div class="fields cols-4">
                 <div><span class="label">Logs folder</span><span class="data">@_system.LogsPath</span></div>
                 <div><span class="label">Docker gateway IPs</span><span class="data">@string.Join(", ", _system.DockerGatewayIps)</span></div>
                 <div><span class="label">New download after</span><span class="data">@_system.SessionGapMinutes min idle</span></div>
                 <div><span class="label">Steam game names</span><span class="data">@(_system.DepotMapVersion is null ? "not loaded (offline?)" : $"{Format.Count(_system.DepotMapCount)} depots · v{_system.DepotMapVersion}")</span></div>
-                <div>
-                    <span class="label">Battle.net / Epic / Riot art</span>
-                    <span class="data">@(_system.SteamGridDbEnabled ? "Steam + SteamGridDB" : "Steam only (set STEAMGRIDDB_API_KEY)")</span>
-                </div>
             </div>
             <div class="panel-body flush table-wrap">
                 <table class="manifest">

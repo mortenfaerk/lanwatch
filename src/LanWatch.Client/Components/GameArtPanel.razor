@@ -1,0 +1,150 @@
+@* Settings → Game art: the SteamGridDB key that gives Battle.net, Epic and Riot titles their header art. *@
+@inject Api Api
+
+<section class="panel" aria-labelledby="art-h">
+    <header class="panel-head">
+        <h2 id="art-h">Game art</h2>
+        @if (_status is not null)
+        {
+            @switch (_status.Source)
+            {
+                case ArtKeySource.Settings:
+                    <span class="tag good"><Icon Name="circle-check" />SteamGridDB on</span>
+                    break;
+                case ArtKeySource.Environment:
+                    <span class="tag good"><Icon Name="circle-check" />SteamGridDB on (env)</span>
+                    break;
+                default:
+                    <span class="tag">Steam only</span>
+                    break;
+            }
+        }
+    </header>
+    <div class="panel-body stack" style="gap:var(--s-3)">
+        <p class="secondary">
+            Steam games get their art from Steam. Battle.net, Epic and Riot titles need a free
+            <a href="https://www.steamgriddb.com/profile/preferences" target="_blank" rel="noopener">SteamGridDB API key</a>.
+            LanWatch checks the key before saving it.
+        </p>
+
+        @if (_status is null)
+        {
+            <span class="skeleton"></span>
+        }
+        else
+        {
+            @if (_status.MaskedKey is not null && !_editing)
+            {
+                <div class="field">
+                    <span class="label">API key</span>
+                    <div class="key-row">
+                        <span class="data">@_status.MaskedKey</span>
+                        <span class="muted" style="font-size:var(--fs-12)">
+                            @(_status.Source == ArtKeySource.Environment ? "from STEAMGRIDDB_API_KEY" : _status.OverridesEnvironment ? "saved here, overrides STEAMGRIDDB_API_KEY" : "saved here")
+                        </span>
+                        <span class="spacer"></span>
+                        <button class="btn sm" @onclick="() => { _editing = true; _error = null; }"><Icon Name="pencil" /> Replace</button>
+                        @if (_status.Source == ArtKeySource.Settings)
+                        {
+                            <button class="btn sm ghost" @onclick="ClearAsync" disabled="@_busy">
+                                <Icon Name="x" /> @(_status.OverridesEnvironment ? "Use env key" : "Remove")
+                            </button>
+                        }
+                    </div>
+                </div>
+            }
+            else
+            {
+                <form class="field" @onsubmit="SaveAsync" @onsubmit:preventDefault>
+                    <label class="label" for="sgdb-key">API key</label>
+                    <div class="key-row">
+                        <input id="sgdb-key" class="input data" type="password" autocomplete="off" spellcheck="false"
+                               placeholder="Paste your SteamGridDB API key" @bind="_draft" @bind:event="oninput"
+                               aria-invalid="@(_error is not null ? "true" : "false")" aria-describedby="sgdb-error" />
+                        <button class="btn sm primary" type="submit" disabled="@(_busy || string.IsNullOrWhiteSpace(_draft))">
+                            <Icon Name="check" /> @(_busy ? "Checking…" : "Save")
+                        </button>
+                        @if (_status.MaskedKey is not null)
+                        {
+                            <button class="btn sm ghost" type="button" @onclick="Cancel">Cancel</button>
+                        }
+                    </div>
+                </form>
+            }
+
+            @if (_error is not null)
+            {
+                <p id="sgdb-error" class="error-text" role="alert"><Icon Name="triangle-alert" /> @_error</p>
+            }
+            else if (_saved)
+            {
+                <p class="muted" role="status" style="font-size:var(--fs-12)">Saved. Art shows up as titles are viewed and is cached on the VM.</p>
+            }
+        }
+    </div>
+</section>
+
+@code {
+    private ArtSettingsDto? _status;
+    private string _draft = "";
+    private bool _editing;
+    private bool _busy;
+    private bool _saved;
+    private string? _error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try { _status = await Api.ArtSettings(); }
+        catch (HttpRequestException) { _error = "Could not load the game art settings."; }
+    }
+
+    private async Task SaveAsync()
+    {
+        _busy = true;
+        _error = null;
+        _saved = false;
+        try
+        {
+            await Api.SaveArtKey(_draft);
+            _status = await Api.ArtSettings();
+            _draft = "";
+            _editing = false;
+            _saved = true;
+        }
+        catch (Exception ex) when (ex is ApiException or HttpRequestException)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private async Task ClearAsync()
+    {
+        _busy = true;
+        _error = null;
+        _saved = false;
+        try
+        {
+            await Api.ClearArtKey();
+            _status = await Api.ArtSettings();
+        }
+        catch (Exception ex) when (ex is ApiException or HttpRequestException)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private void Cancel()
+    {
+        _editing = false;
+        _draft = "";
+        _error = null;
+    }
+}

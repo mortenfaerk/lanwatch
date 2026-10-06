@@ -32,3 +32,10 @@ public sealed record AdGuardDto(
     IReadOnlyList<UpstreamEntry> Upstreams,
     IReadOnlyList<BypassClient> Bypass,
     long? CheckedUnix);
+
+public enum ArtKeySource { None, Environment, Settings }
+
+/// <summary>SteamGridDB key status. The key itself never leaves the server; only its last four characters do.</summary>
+public sealed record ArtSettingsDto(ArtKeySource Source, string? MaskedKey, bool OverridesEnvironment);
+
+public sealed record ArtKeyRequest(string ApiKey);

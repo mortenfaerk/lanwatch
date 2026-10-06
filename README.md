@@ -43,7 +43,6 @@ Stack: ASP.NET Core (.NET 10), Blazor WebAssembly, SignalR and SQLite. LanWatch 
    ADGUARD_URL=http://10.0.0.53      # optional: your AdGuard Home
    ADGUARD_USER=admin
    ADGUARD_PASSWORD=...
-   STEAMGRIDDB_API_KEY=...           # optional: art for Battle.net / Epic / Riot games
    ```
 3. Start it from the lancache folder:
    ```
@@ -86,7 +85,7 @@ LanWatch trusts `X-Forwarded-For`/`X-Forwarded-Proto` from proxies on private ne
 - **Steam games:** header art comes from Steam's CDN.
 - **Battle.net, Epic and Riot:** these launchers expose only internal product codes (`/tpr/ovw/`, `/Builds/Fortnite/`) and have no public metadata API. LanWatch names the common codes from a built-in table ([`KnownProducts.cs`](src/LanWatch.Server/Content/KnownProducts.cs); additions welcome).
   - Games that are also sold on Steam (Overwatch 2, Diablo IV, Call of Duty) reuse their Steam art.
-  - For the rest, set `STEAMGRIDDB_API_KEY` ([free key](https://www.steamgriddb.com/profile/preferences)) and LanWatch fetches header art from [SteamGridDB](https://www.steamgriddb.com).
+  - For the rest, paste a [free SteamGridDB API key](https://www.steamgriddb.com/profile/preferences) into **Settings → Game art** and LanWatch fetches header art from [SteamGridDB](https://www.steamgriddb.com). The key is checked before it is saved, stored in the LanWatch database, and only its last four characters are ever shown. You can also set `STEAMGRIDDB_API_KEY`; a key saved in Settings takes precedence.
 - **Anything without art** gets a label tile with the title's initials in its service colour.
 
 ### Configuration
@@ -102,7 +101,7 @@ LanWatch trusts `X-Forwarded-For`/`X-Forwarded-Proto` from proxies on private ne
 | `CACHE_PATH` | – | Cache volume mounted read-only, for disk usage |
 | `ADGUARD_URL` / `ADGUARD_USER` / `ADGUARD_PASSWORD` | – | AdGuard Home API |
 | `ADGUARD_IGNORE_CLIENTS` | `LANCACHE_IP` + gateways | Clients allowed to ask AdGuard for cache domains (lancache-dns itself) |
-| `STEAMGRIDDB_API_KEY` | – | Art for Battle.net / Epic / Riot titles |
+| `STEAMGRIDDB_API_KEY` | – | Art for Battle.net / Epic / Riot titles (a key saved in Settings → Game art wins) |
 | `TRUSTED_PROXIES` | private ranges | IPs or CIDRs of reverse proxies allowed to set `X-Forwarded-*` |
 | `LANWATCH_REPOSITORY` | this repo | GitHub repo for the rail link and the update check (for forks) |
 | `GITHUB_TOKEN` | – | Read-only token; only needed if your fork is private |

@@ -11,8 +11,27 @@ namespace LanWatch.Server.Content;
 /// Each image is fetched from the internet once and then served locally, which helps when the event's uplink is
 /// saturated.
 /// </summary>
-public sealed partial class ArtCache(IHttpClientFactory httpFactory, IOptions<LanWatchOptions> options, ILogger<ArtCache> logger)
+public sealed partial class ArtCache
 {
+    private readonly IHttpClientFactory httpFactory;
+    private readonly IOptions<LanWatchOptions> options;
+    private readonly GameArtSettings artSettings;
+    private readonly ILogger<ArtCache> logger;
+
+    public ArtCache(IHttpClientFactory httpFactory, IOptions<LanWatchOptions> options, GameArtSettings artSettings, ILogger<ArtCache> logger)
+    {
+        this.httpFactory = httpFactory;
+        this.options = options;
+        this.artSettings = artSettings;
+        this.logger = logger;
+        // A new key deserves a fresh try at titles that found no art before.
+        artSettings.Changed += () =>
+        {
+            foreach (var key in _failures.Keys.Where(k => k.StartsWith("sgdb", StringComparison.Ordinal)).ToList())
+                _failures.TryRemove(key, out _);
+        };
+    }
+
     private static readonly TimeSpan RetryAfterFailure = TimeSpan.FromHours(1);
 
     private readonly ConcurrentDictionary<string, DateTimeOffset> _failures = new();
@@ -35,12 +54,12 @@ public sealed partial class ArtCache(IHttpClientFactory httpFactory, IOptions<La
         }, ct);
 
     /// <summary>
-    /// Header-shaped art (460x215, the Steam header ratio) from SteamGridDB, found by game name. Needs
-    /// <c>STEAMGRIDDB_API_KEY</c>; a free key comes from https://www.steamgriddb.com/profile/preferences.
+    /// Header-shaped art (460x215, the Steam header ratio) from SteamGridDB, found by game name. Needs a key
+    /// (Settings, or <c>STEAMGRIDDB_API_KEY</c>); a free key comes from https://www.steamgriddb.com/profile/preferences.
     /// </summary>
     public Task<string?> GetSteamGridDbAsync(string name, CancellationToken ct)
     {
-        var key = options.Value.SteamGridDbApiKey;
+        var key = artSettings.ApiKey;
         if (string.IsNullOrWhiteSpace(key)) return Task.FromResult<string?>(null);
 
         return GetOrFetchAsync(Path.Combine("sgdb", $"{Slug(name)}.img"), async http =>

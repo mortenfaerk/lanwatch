@@ -1,7 +1,9 @@
+using System.Net;
 using LanWatch.Server;
 using LanWatch.Server.Api;
 using LanWatch.Server.Content;
 using LanWatch.Server.Data;
+using LanWatch.Shared.Contracts;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -43,8 +45,41 @@ public sealed class ContentCatalogTests : IDisposable
 
     private LanWatchDb Db() => new(new DbContextOptionsBuilder<LanWatchDb>().UseSqlite(_conn).Options);
 
-    private ContentCatalog Catalog(string? sgdbKey) =>
-        new(new Factory(Db), Options.Create(new LanWatchOptions { SteamGridDbApiKey = sgdbKey }));
+    private GameArtSettings Art(string? envKey, HttpStatusCode validation = HttpStatusCode.OK) =>
+        new(new Factory(Db), Options.Create(new LanWatchOptions { SteamGridDbApiKey = envKey }), new FakeHttp(validation));
+
+    private ContentCatalog Catalog(string? sgdbKey) => new(new Factory(Db), Art(sgdbKey));
+
+    [Fact]
+    public async Task Saved_key_overrides_environment_and_clearing_falls_back()
+    {
+        var art = Art("env-key-0000000000000001");
+        Assert.Equal(ArtKeySource.Environment, art.Source);
+
+        Assert.Null(await art.SaveAsync("  saved-key-00000000000abcd ", default));
+        Assert.Equal(ArtKeySource.Settings, art.Source);
+        Assert.Equal("saved-key-00000000000abcd", art.ApiKey);
+        Assert.Equal("••••abcd", art.ToDto().MaskedKey);
+        Assert.True(art.ToDto().OverridesEnvironment);
+
+        // A fresh instance (server restart) reads the saved key back.
+        var reloaded = Art("env-key-0000000000000001");
+        await reloaded.LoadAsync();
+        Assert.Equal("saved-key-00000000000abcd", reloaded.ApiKey);
+
+        await reloaded.ClearAsync(default);
+        Assert.Equal(ArtKeySource.Environment, reloaded.Source);
+    }
+
+    [Fact]
+    public async Task Rejected_or_malformed_keys_are_not_saved()
+    {
+        var art = Art(null, HttpStatusCode.Unauthorized);
+        Assert.Contains("rejected", await art.SaveAsync("wrong-key-000000000000000", default));
+        Assert.NotNull(await art.SaveAsync("short", default));
+        Assert.Equal(ArtKeySource.None, art.Source);
+        Assert.Null(art.ToDto().MaskedKey);
+    }
 
     [Fact]
     public async Task Art_comes_from_steam_then_steamgriddb_then_nothing()
@@ -63,6 +98,18 @@ public sealed class ContentCatalogTests : IDisposable
     private sealed class Factory(Func<LanWatchDb> create) : IDbContextFactory<LanWatchDb>
     {
         public LanWatchDb CreateDbContext() => create();
+    }
+
+    /// <summary>Answers every request with one status code, so key validation never calls SteamGridDB.</summary>
+    private sealed class FakeHttp(HttpStatusCode status) : IHttpClientFactory
+    {
+        public HttpClient CreateClient(string name) => new(new Handler(status));
+
+        private sealed class Handler(HttpStatusCode status) : HttpMessageHandler
+        {
+            protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct) =>
+                Task.FromResult(new HttpResponseMessage(status) { Content = new StringContent("{\"success\":true,\"data\":[]}") });
+        }
     }
 }
 

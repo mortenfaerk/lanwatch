@@ -25,6 +25,10 @@ public sealed class Api(HttpClient http, Session session, ScopeState scope)
     public Task<SettingsDto?> Settings() => Get<SettingsDto>("api/settings", scoped: false);
     public Task<List<LanEventDto>?> Events() => Get<List<LanEventDto>>("api/events", scoped: false);
 
+    public Task<ArtSettingsDto?> ArtSettings() => Get<ArtSettingsDto>("api/settings/art", scoped: false);
+    public Task SaveArtKey(string key) => Send(HttpMethod.Put, "api/settings/art", new ArtKeyRequest(key));
+    public Task ClearArtKey() => Send(HttpMethod.Delete, "api/settings/art", null);
+
     public Task SignOff(string kind, string domain) => Send(HttpMethod.Post, "api/exceptions/signoff", new SignOffRequest(kind, domain));
     public Task RenameClient(string ip, string? name) => Send(HttpMethod.Put, $"api/clients/{Uri.EscapeDataString(ip)}/name", new ClientRename(name));
     public Task SaveSettings(SettingsDto dto) => Send(HttpMethod.Put, "api/settings", dto);

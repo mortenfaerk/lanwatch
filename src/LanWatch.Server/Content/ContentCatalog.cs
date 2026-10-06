@@ -2,12 +2,11 @@ using System.Collections.Concurrent;
 using LanWatch.Server.Data;
 using LanWatch.Shared.Contracts;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 
 namespace LanWatch.Server.Content;
 
 /// <summary>Turns (service, content id) into something a human recognises: a game name and artwork.</summary>
-public sealed class ContentCatalog(IDbContextFactory<LanWatchDb> dbFactory, IOptions<LanWatchOptions> options)
+public sealed class ContentCatalog(IDbContextFactory<LanWatchDb> dbFactory, GameArtSettings artSettings)
 {
     private readonly ConcurrentDictionary<long, (long AppId, string Name)?> _steam = new();
 
@@ -94,7 +93,7 @@ public sealed class ContentCatalog(IDbContextFactory<LanWatchDb> dbFactory, IOpt
         if (!product.Infrastructure)
         {
             if (product.SteamAppId is { } steamApp) art = $"/api/art/steam/{steamApp}";
-            else if (!string.IsNullOrWhiteSpace(options.Value.SteamGridDbApiKey)) art = $"/api/art/sgdb/{service}/{Uri.EscapeDataString(id)}";
+            else if (artSettings.ApiKey is not null) art = $"/api/art/sgdb/{service}/{Uri.EscapeDataString(id)}";
         }
         return new ContentInfo(service, id, product.Name, art, product.StoreUrl);
     }

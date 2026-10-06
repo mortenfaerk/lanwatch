@@ -36,6 +36,7 @@ builder.Services.AddSingleton<IIngestObserver>(sp => sp.GetRequiredService<LiveF
 builder.Services.AddHostedService<IngestionService>();
 
 // Content names and art
+builder.Services.AddSingleton<GameArtSettings>();
 builder.Services.AddSingleton<ContentCatalog>();
 builder.Services.AddSingleton<ArtCache>();
 builder.Services.AddSingleton<ClientDirectory>();
@@ -46,7 +47,11 @@ builder.Services.AddHttpClient("github", c =>
     c.DefaultRequestHeaders.UserAgent.ParseAdd("LanWatch/1.0");
     c.Timeout = TimeSpan.FromMinutes(2);
 });
-builder.Services.AddHttpClient("art", c => c.Timeout = TimeSpan.FromSeconds(10));
+builder.Services.AddHttpClient("art", c =>
+{
+    c.DefaultRequestHeaders.UserAgent.ParseAdd("LanWatch/1.0 (+https://github.com/mortenfaerk/lanwatch)");
+    c.Timeout = TimeSpan.FromSeconds(10);
+});
 
 // Health probes and AdGuard
 builder.Services.AddSingleton<HealthState>();
@@ -84,6 +89,7 @@ builder.Services.AddRateLimiter(o =>
 var app = builder.Build();
 
 await InitializeDatabaseAsync(app.Services);
+await app.Services.GetRequiredService<GameArtSettings>().LoadAsync();
 EnsurePassword(app);
 
 if (app.Environment.IsDevelopment())

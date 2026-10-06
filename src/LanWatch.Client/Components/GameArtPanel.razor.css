@@ -1,0 +1,14 @@
+.key-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--s-2);
+}
+
+.key-row .input {
+    flex: 1 1 220px;
+}
+
+.key-row .spacer {
+    flex: 1;
+}
