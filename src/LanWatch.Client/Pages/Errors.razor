@@ -1,0 +1,262 @@
+@page "/errors"
+@implements IDisposable
+@inject Api Api
+@inject ScopeState Scope
+@inject LiveConnection Live
+
+<PageTitle>Errors · LanWatch</PageTitle>
+<SectionContent SectionName="title"><h1>Errors</h1></SectionContent>
+
+<section aria-labelledby="exc-h" class="stack" style="gap:var(--s-3)">
+    <h2 id="exc-h">Exceptions @(Scope.IsLive ? "· last 15 minutes" : "· this event")</h2>
+    <ExceptionBand Max="24" />
+</section>
+
+<div class="grid-12">
+    <section class="panel span-8" aria-labelledby="tl-h">
+        <header class="panel-head">
+            <h2 id="tl-h">Errors over the event</h2>
+            @if (_data is not null)
+            {
+                <div class="meta legend">
+                    @foreach (var k in Kinds)
+                    {
+                        <span class="key"><i style="background:@KindColor(k)"></i>@ErrorKinds.Title(k)</span>
+                    }
+                </div>
+            }
+        </header>
+        <div class="panel-body">
+            @if (_data is null)
+            {
+                <span class="skeleton" style="height:160px"></span>
+            }
+            else if (_data.Timeline.Count == 0)
+            {
+                <div class="empty"><b>No errors logged in this scope.</b><span>Upstream timeouts, DNS failures and loops show up here as they happen.</span></div>
+            }
+            else
+            {
+                <ErrorTimeline Buckets="_data.Timeline" BucketSeconds="_data.BucketSeconds" Kinds="Kinds" ColorOf="KindColor" />
+            }
+        </div>
+    </section>
+
+    <section class="panel span-4" aria-labelledby="st-h">
+        <header class="panel-head"><h2 id="st-h">Failed responses</h2><div class="meta">HTTP status to clients</div></header>
+        <div class="panel-body flush">
+            @if (_data is null)
+            {
+                <div class="panel-body"><span class="skeleton"></span></div>
+            }
+            else if (_data.Statuses.Count == 0)
+            {
+                <div class="empty"><b>Every request succeeded.</b></div>
+            }
+            else
+            {
+                <table class="manifest">
+                    <thead><tr><th>Status</th><th>Service</th><th class="num">Count</th></tr></thead>
+                    <tbody>
+                        @foreach (var s in _data.Statuses.Take(10))
+                        {
+                            <tr>
+                                <td><span class="data">@s.Status</span> <span class="muted">@StatusText(s.Status)</span></td>
+                                <td>@(s.Service == "loop" ? "Loop" : Svc.Name(s.Service))</td>
+                                <td class="num data">@Format.Count(s.Count)</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    </section>
+
+    <section class="panel span-6" aria-labelledby="host-h">
+        <header class="panel-head"><h2 id="host-h">Hosts with the most errors</h2></header>
+        <div class="panel-body flush table-wrap">
+            <table class="manifest">
+                <thead><tr><th>Host</th><th>Problem</th><th class="num">Count</th><th class="num">Last</th></tr></thead>
+                <tbody>
+                    @if (_data is null)
+                    {
+                        <SkeletonRows Rows="6" Columns="4" />
+                    }
+                    else if (_data.TopHosts.Count == 0)
+                    {
+                        <tr><td colspan="4"><div class="empty"><b>No host-specific errors.</b></div></td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var h in _data.TopHosts)
+                        {
+                            <tr>
+                                <td class="data">@h.Host</td>
+                                <td>@ErrorKinds.Title(h.Kind)</td>
+                                <td class="num data">@h.Count</td>
+                                <td class="num data">@Format.DayTime(h.LastUnix)</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="panel span-6" aria-labelledby="sni-h">
+        <header class="panel-head"><h2 id="sni-h">HTTPS passthrough</h2><div class="meta">port 443, not cached</div></header>
+        <div class="panel-body flush table-wrap">
+            <table class="manifest">
+                <thead><tr><th>Host (SNI)</th><th class="num">Clients</th><th class="num">Connections</th><th class="num">Failed</th><th class="num">Data</th></tr></thead>
+                <tbody>
+                    @if (_stream is null)
+                    {
+                        <SkeletonRows Rows="6" Columns="5" />
+                    }
+                    else if (_stream.Count == 0)
+                    {
+                        <tr><td colspan="5"><div class="empty"><b>No HTTPS passthrough traffic.</b></div></td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var s in _stream.Take(15))
+                        {
+                            <tr>
+                                <td class="data">
+                                    @if (string.IsNullOrEmpty(s.SniHost))
+                                    {
+                                        <span class="tag warn" title="The client did not say which host it wanted">No SNI</span>
+                                    }
+                                    else
+                                    {
+                                        @s.SniHost
+                                    }
+                                </td>
+                                <td class="num data">@s.Clients</td>
+                                <td class="num data">@Format.Count(s.Connections)</td>
+                                <td class="num data">
+                                    @if (s.Failures > 0)
+                                    {
+                                        <span class="tag bad">@s.Failures</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="muted">0</span>
+                                    }
+                                </td>
+                                <td class="num data">@Format.Bytes(s.BytesSent + s.BytesReceived)</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="panel span-12" aria-labelledby="log-h">
+        <header class="panel-head"><h2 id="log-h">Recent errors</h2><div class="meta">newest first, raw nginx text</div></header>
+        <div class="panel-body flush table-wrap" style="max-height:420px;overflow:auto">
+            <table class="manifest">
+                <thead><tr><th>Time</th><th>Log</th><th>Problem</th><th>Host</th><th>Client</th><th>Message</th></tr></thead>
+                <tbody>
+                    @if (_data is null)
+                    {
+                        <SkeletonRows Rows="8" Columns="6" />
+                    }
+                    else
+                    {
+                        @foreach (var e in _data.Recent)
+                        {
+                            <tr>
+                                <td class="data tight">@Format.DayTime(e.Unix)</td>
+                                <td class="tight">@SourceName(e.Source)</td>
+                                <td class="tight">@ErrorKinds.Title(e.Kind)</td>
+                                <td class="data">@e.Host</td>
+                                <td class="data tight">@e.ClientIp</td>
+                                <td class="secondary" style="font-size:var(--fs-12)">@e.Message</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+@if (_error)
+{
+    <p class="error-text" role="alert"><Icon Name="triangle-alert" /> Could not load errors. Check the server is running.</p>
+}
+
+@code {
+    private ErrorsDto? _data;
+    private List<StreamHostDto>? _stream;
+    private bool _error;
+
+    // Status colours are reserved for state, so error kinds take the categorical slots, ordered by severity.
+    private static readonly string[] KindOrder =
+        ["DnsResolveFailed", "UpstreamTimeout", "UpstreamClosed", "SliceStatus", "ConnectionReset", "NoHostInUpstream", "LoopDetected", "ConnectionRefused", "Other"];
+    private static readonly string[] Palette =
+        ["var(--svc-steam)", "var(--svc-epicgames)", "var(--svc-blizzard)", "var(--svc-wsus)", "var(--svc-other)", "var(--svc-other)", "var(--svc-other)", "var(--svc-other)", "var(--svc-other)"];
+
+    private IReadOnlyList<string> Kinds => _data is null ? [] :
+        KindOrder.Where(k => _data.Timeline.Any(b => b.ByKind.ContainsKey(k))).ToList();
+
+    private static string KindColor(string kind) => Palette[Math.Max(0, Array.IndexOf(KindOrder, kind))];
+
+    protected override async Task OnInitializedAsync()
+    {
+        Scope.Changed += Reload;
+        Live.DataChanged += Reload;
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        try
+        {
+            var data = Api.Errors();
+            var stream = Api.Stream();
+            _data = await data;
+            _stream = await stream;
+            _error = false;
+        }
+        catch (HttpRequestException)
+        {
+            _error = true;
+        }
+    }
+
+    private static string SourceName(string source) => source switch
+    {
+        "Cache" => "error.log",
+        "Upstream" => "upstream-error.log",
+        "Stream" => "stream-error.log",
+        "Access" => "access.log",
+        _ => source,
+    };
+
+    private static string StatusText(int status) => status switch
+    {
+        400 => "Bad request",
+        403 => "Forbidden",
+        404 => "Not found",
+        499 => "Client gave up",
+        500 => "Server error",
+        502 => "Bad gateway",
+        504 => "Upstream timeout",
+        508 => "Loop detected",
+        _ => "",
+    };
+
+    private async void Reload()
+    {
+        await LoadAsync();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        Scope.Changed -= Reload;
+        Live.DataChanged -= Reload;
+    }
+}

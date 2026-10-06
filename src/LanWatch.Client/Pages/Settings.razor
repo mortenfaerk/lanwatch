@@ -1,0 +1,160 @@
+@page "/settings"
+@inject Api Api
+@inject IJSRuntime JS
+
+<PageTitle>Settings · LanWatch</PageTitle>
+<SectionContent SectionName="title"><h1>Settings</h1></SectionContent>
+
+<div class="grid-12">
+    <section class="panel span-6" aria-labelledby="ex-h">
+        <header class="panel-head"><h2 id="ex-h">Leave out of the stats</h2></header>
+        <div class="panel-body stack" style="gap:var(--s-3)">
+            <p class="secondary">Client IPs listed here are hidden from totals, clients and downloads: crew test machines, prefill boxes, the monitoring host. Nothing is deleted.</p>
+            <label class="field">
+                <span class="label">IP addresses, one per line</span>
+                <textarea class="input data" rows="6" style="height:auto;padding:8px 10px" @bind="_excluded"></textarea>
+            </label>
+            <div class="toolbar">
+                <button class="btn primary" @onclick="SaveAsync" disabled="@_saving"><Icon Name="check" /> @(_saving ? "Saving…" : "Save")</button>
+                @if (_saved)
+                {
+                    <span class="muted" role="status">Saved.</span>
+                }
+            </div>
+        </div>
+    </section>
+
+    <section class="panel span-6" style="align-self:start" aria-labelledby="th-h">
+        <header class="panel-head"><h2 id="th-h">Appearance</h2></header>
+        <div class="panel-body stack" style="gap:var(--s-3)">
+            <label class="field" style="max-width:260px">
+                <span class="label">Theme</span>
+                <select class="select" value="@_theme" @onchange="SetTheme">
+                    <option value="system">Match this computer</option>
+                    <option value="light">Manifest paper (light)</option>
+                    <option value="dark">Carbon copy (dark)</option>
+                </select>
+            </label>
+            <p class="muted" style="font-size:var(--fs-12)">Saved in this browser only.</p>
+        </div>
+    </section>
+
+    <section class="panel span-12" aria-labelledby="sys-h">
+        <header class="panel-head"><h2 id="sys-h">Log reader</h2></header>
+        @if (_system is null)
+        {
+            <div class="panel-body"><span class="skeleton"></span></div>
+        }
+        else
+        {
+            <div class="fields cols-4">
+                <div><span class="label">Logs folder</span><span class="data">@_system.LogsPath</span></div>
+                <div><span class="label">Docker gateway IPs</span><span class="data">@string.Join(", ", _system.DockerGatewayIps)</span></div>
+                <div><span class="label">New download after</span><span class="data">@_system.SessionGapMinutes min idle</span></div>
+                <div><span class="label">Steam game names</span><span class="data">@(_system.DepotMapVersion is null ? "not loaded (offline?)" : $"{Format.Count(_system.DepotMapCount)} depots · v{_system.DepotMapVersion}")</span></div>
+            </div>
+            <div class="panel-body flush table-wrap">
+                <table class="manifest">
+                    <thead><tr><th>File</th><th>Status</th><th class="num">Read</th><th class="num">Size</th><th class="num">Lines this run</th><th class="num">Unparsed</th></tr></thead>
+                    <tbody>
+                        @foreach (var f in _system.Ingest.Files)
+                        {
+                            <tr>
+                                <td class="data">@f.Name</td>
+                                <td>
+                                    @if (!f.Exists)
+                                    {
+                                        <span class="tag warn">Missing</span>
+                                    }
+                                    else if (f.Offset >= f.Length - 1)
+                                    {
+                                        <span class="tag good">Up to date</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="tag">Reading</span>
+                                    }
+                                </td>
+                                <td class="num data">@Format.Bytes(f.Offset)</td>
+                                <td class="num data">@Format.Bytes(f.Length)</td>
+                                <td class="num data">@Format.Count(f.LinesParsed)</td>
+                                <td class="num data">
+                                    @if (f.LinesFailed > 0)
+                                    {
+                                        <span class="tag warn">@Format.Count(f.LinesFailed)</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="muted">0</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </section>
+</div>
+@if (_error is not null)
+{
+    <p class="error-text" role="alert"><Icon Name="triangle-alert" /> @_error</p>
+}
+
+@code {
+    private string _excluded = "";
+    private string _theme = "system";
+    private SystemDto? _system;
+    private bool _saving;
+    private bool _saved;
+    private string? _error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var settings = Api.Settings();
+            var system = Api.System();
+            _excluded = string.Join('\n', (await settings)?.ExcludedIps ?? []);
+            _system = await system;
+        }
+        catch (HttpRequestException)
+        {
+            _error = "Could not load settings. Check the server is running.";
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        _theme = await JS.InvokeAsync<string>("lanwatch.getTheme");
+        StateHasChanged();
+    }
+
+    private async Task SaveAsync()
+    {
+        _saving = true;
+        _saved = false;
+        try
+        {
+            var ips = _excluded.Split(['\n', ',', ' ', ';'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            await Api.SaveSettings(new SettingsDto(ips));
+            _saved = true;
+            _error = null;
+        }
+        catch (Exception ex) when (ex is ApiException or HttpRequestException)
+        {
+            _error = $"Could not save: {ex.Message}";
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+
+    private async Task SetTheme(ChangeEventArgs e)
+    {
+        _theme = e.Value?.ToString() ?? "system";
+        await JS.InvokeVoidAsync("lanwatch.setTheme", _theme);
+    }
+}

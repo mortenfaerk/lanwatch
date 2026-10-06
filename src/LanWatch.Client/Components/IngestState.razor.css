@@ -1,0 +1,10 @@
+.ingest {
+    display: grid;
+    gap: 3px;
+    font-size: var(--fs-12);
+    color: var(--kraft-ink);
+}
+
+.ingest .label {
+    color: var(--kraft-ink-2);
+}

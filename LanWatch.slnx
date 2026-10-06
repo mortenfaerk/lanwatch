@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/LanWatch.Client/LanWatch.Client.csproj" />
+    <Project Path="src/LanWatch.Server/LanWatch.Server.csproj" />
+    <Project Path="src/LanWatch.Shared/LanWatch.Shared.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/LanWatch.Tests/LanWatch.Tests.csproj" />
+  </Folder>
+</Solution>

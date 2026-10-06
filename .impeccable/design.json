@@ -1,0 +1,934 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-06T20:19:05+00:00",
+  "title": "Design System: LanWatch",
+  "extensions": {
+    "colorMeta": {
+      "paper": {
+        "role": "neutral",
+        "displayName": "Manifest Paper",
+        "canonical": "#f5f3ec",
+        "tonalRamp": [
+          "#322d1a",
+          "#574e2e",
+          "#7c6f41",
+          "#a09054",
+          "#b7a876",
+          "#cac09b",
+          "#dfd9c3",
+          "#f6f4ee"
+        ]
+      },
+      "paper-2": {
+        "role": "neutral",
+        "displayName": "Form Tint",
+        "canonical": "#ebe7db",
+        "tonalRamp": [
+          "#312c1b",
+          "#554c2f",
+          "#796c43",
+          "#9d8c57",
+          "#b4a579",
+          "#c8bd9d",
+          "#ded8c4",
+          "#f6f4ef"
+        ]
+      },
+      "paper-raised": {
+        "role": "neutral",
+        "displayName": "Raised Sheet",
+        "canonical": "#fbfaf6",
+        "tonalRamp": [
+          "#352f18",
+          "#5c5229",
+          "#83743a",
+          "#a9974b",
+          "#bfaf6e",
+          "#d0c495",
+          "#e3dcbf",
+          "#f7f5ed"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#1b1b19",
+        "tonalRamp": [
+          "#282825",
+          "#454540",
+          "#62625b",
+          "#7f7f76",
+          "#9a9a92",
+          "#b5b5b0",
+          "#d3d3cf",
+          "#f3f3f2"
+        ]
+      },
+      "ink-2": {
+        "role": "neutral",
+        "displayName": "Ink Secondary",
+        "canonical": "#47443d",
+        "tonalRamp": [
+          "#292723",
+          "#47443d",
+          "#656157",
+          "#847e71",
+          "#9e9a8f",
+          "#b8b5ad",
+          "#d5d2ce",
+          "#f3f3f1"
+        ]
+      },
+      "ink-3": {
+        "role": "neutral",
+        "displayName": "Ink Muted",
+        "canonical": "#6b675d",
+        "tonalRamp": [
+          "#292724",
+          "#47443e",
+          "#656158",
+          "#837e72",
+          "#9e9a8f",
+          "#b8b5ad",
+          "#d4d2ce",
+          "#f3f3f1"
+        ]
+      },
+      "rule": {
+        "role": "neutral",
+        "displayName": "Row Rule",
+        "canonical": "#d6d0c1",
+        "tonalRamp": [
+          "#2e2a1e",
+          "#504835",
+          "#72674b",
+          "#938561",
+          "#aca081",
+          "#c2b9a3",
+          "#dad5c8",
+          "#f5f3f0"
+        ]
+      },
+      "rule-strong": {
+        "role": "neutral",
+        "displayName": "Strong Rule",
+        "canonical": "#8f887a",
+        "tonalRamp": [
+          "#2a2723",
+          "#48443d",
+          "#666156",
+          "#857e70",
+          "#9f998d",
+          "#b9b5ac",
+          "#d5d2cd",
+          "#f3f3f1"
+        ]
+      },
+      "frame": {
+        "role": "neutral",
+        "displayName": "Frame Ink",
+        "canonical": "#2b2a26",
+        "tonalRamp": [
+          "#292824",
+          "#46453e",
+          "#646259",
+          "#827f73",
+          "#9d9a90",
+          "#b7b5ae",
+          "#d4d3ce",
+          "#f3f3f1"
+        ]
+      },
+      "kraft": {
+        "role": "secondary",
+        "displayName": "Kraft Board",
+        "canonical": "#b98e58",
+        "tonalRamp": [
+          "#362817",
+          "#5d4527",
+          "#856338",
+          "#ac8048",
+          "#c19b6c",
+          "#d2b693",
+          "#e4d3be",
+          "#f7f3ed"
+        ]
+      },
+      "kraft-2": {
+        "role": "secondary",
+        "displayName": "Kraft Fold",
+        "canonical": "#a97f4a",
+        "tonalRamp": [
+          "#352817",
+          "#5c4528",
+          "#836339",
+          "#aa804b",
+          "#bf9b6e",
+          "#d0b695",
+          "#e3d3bf",
+          "#f7f3ed"
+        ]
+      },
+      "kraft-ink": {
+        "role": "secondary",
+        "displayName": "Kraft Ink",
+        "canonical": "#241a0e",
+        "tonalRamp": [
+          "#372815",
+          "#5f4525",
+          "#886235",
+          "#b07f45",
+          "#c49b68",
+          "#d4b691",
+          "#e5d3bd",
+          "#f8f3ed"
+        ]
+      },
+      "kraft-ink-2": {
+        "role": "secondary",
+        "displayName": "Kraft Ink Muted",
+        "canonical": "#3f2f1b",
+        "tonalRamp": [
+          "#362817",
+          "#5d4528",
+          "#846339",
+          "#ab8049",
+          "#c09b6d",
+          "#d1b694",
+          "#e3d3bf",
+          "#f7f3ed"
+        ]
+      },
+      "hit": {
+        "role": "primary",
+        "displayName": "Stock Green (hit)",
+        "canonical": "#3e8a48",
+        "tonalRamp": [
+          "#18351c",
+          "#295b30",
+          "#3a8244",
+          "#4ca958",
+          "#6fbe79",
+          "#95d09d",
+          "#c0e3c4",
+          "#edf7ef"
+        ]
+      },
+      "miss": {
+        "role": "primary",
+        "displayName": "Carbon Blue (miss)",
+        "canonical": "#34539a",
+        "tonalRamp": [
+          "#131f39",
+          "#213563",
+          "#304c8d",
+          "#3e63b7",
+          "#6382ca",
+          "#8da4d8",
+          "#bac8e8",
+          "#ecf0f9"
+        ]
+      },
+      "stamp": {
+        "role": "tertiary",
+        "displayName": "Stamp Red",
+        "canonical": "#c23b2a",
+        "tonalRamp": [
+          "#3f130e",
+          "#6d2118",
+          "#9b2f22",
+          "#c93d2c",
+          "#da6253",
+          "#e48c81",
+          "#efbab4",
+          "#faecea"
+        ]
+      },
+      "stamp-wash": {
+        "role": "tertiary",
+        "displayName": "Stamp Wash",
+        "canonical": "#f6e3dd",
+        "tonalRamp": [
+          "#3c1b10",
+          "#692e1c",
+          "#954227",
+          "#c25533",
+          "#d3775a",
+          "#df9b86",
+          "#ecc3b6",
+          "#faeeeb"
+        ]
+      },
+      "on-stamp": {
+        "role": "tertiary",
+        "displayName": "On Stamp",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "#262626",
+          "#424242",
+          "#5e5e5e",
+          "#7a7a7a",
+          "#969696",
+          "#b2b2b2",
+          "#d1d1d1",
+          "#f2f2f2"
+        ]
+      },
+      "hazard": {
+        "role": "tertiary",
+        "displayName": "Hazard Yellow",
+        "canonical": "#e8b500",
+        "tonalRamp": [
+          "#4c3c00",
+          "#856700",
+          "#bd9300",
+          "#f5bf00",
+          "#ffd12e",
+          "#ffdd66",
+          "#ffeba3",
+          "#fff9e5"
+        ]
+      },
+      "hazard-ink": {
+        "role": "tertiary",
+        "displayName": "Hazard Ink",
+        "canonical": "#6e5100",
+        "tonalRamp": [
+          "#4c3800",
+          "#856200",
+          "#bd8b00",
+          "#f5b400",
+          "#ffc82e",
+          "#ffd766",
+          "#ffe7a3",
+          "#fff8e5"
+        ]
+      },
+      "hazard-wash": {
+        "role": "tertiary",
+        "displayName": "Hazard Wash",
+        "canonical": "#f8efcc",
+        "tonalRamp": [
+          "#433709",
+          "#756010",
+          "#a68917",
+          "#d7b11e",
+          "#e6c547",
+          "#edd578",
+          "#f4e6ae",
+          "#fcf8e9"
+        ]
+      },
+      "ok": {
+        "role": "tertiary",
+        "displayName": "Signal Green",
+        "canonical": "#2e7d4f",
+        "tonalRamp": [
+          "#153823",
+          "#24613d",
+          "#338a57",
+          "#42b371",
+          "#66c78f",
+          "#8fd6ad",
+          "#bce6ce",
+          "#ecf8f1"
+        ]
+      },
+      "svc-steam": {
+        "role": "data",
+        "displayName": "Service: Steam",
+        "canonical": "#6a4fc0",
+        "tonalRamp": [
+          "#1d1438",
+          "#322362",
+          "#47328b",
+          "#5c41b4",
+          "#7d65c8",
+          "#a08ed7",
+          "#c6bbe7",
+          "#efecf8"
+        ]
+      },
+      "svc-epicgames": {
+        "role": "data",
+        "displayName": "Service: Epic Games",
+        "canonical": "#a0561a",
+        "tonalRamp": [
+          "#42230b",
+          "#723d13",
+          "#a2571a",
+          "#d37122",
+          "#e28f4b",
+          "#eaad7b",
+          "#f2ceb0",
+          "#fbf1e9"
+        ]
+      },
+      "svc-blizzard": {
+        "role": "data",
+        "displayName": "Service: Blizzard",
+        "canonical": "#00879f",
+        "tonalRamp": [
+          "#00414c",
+          "#007185",
+          "#00a0bd",
+          "#00d0f5",
+          "#2edfff",
+          "#66e8ff",
+          "#a3f1ff",
+          "#e5fbff"
+        ]
+      },
+      "svc-wsus": {
+        "role": "data",
+        "displayName": "Service: WSUS",
+        "canonical": "#c2457f",
+        "tonalRamp": [
+          "#3a1325",
+          "#642140",
+          "#8e2f5b",
+          "#b83c76",
+          "#cb6293",
+          "#d98cb0",
+          "#e8bacf",
+          "#f9ecf2"
+        ]
+      },
+      "svc-other": {
+        "role": "data",
+        "displayName": "Service: Other (always labelled)",
+        "canonical": "#8f887a",
+        "tonalRamp": [
+          "#2a2723",
+          "#48443d",
+          "#666156",
+          "#857e70",
+          "#9f998d",
+          "#b9b5ac",
+          "#d5d2cd",
+          "#f3f3f1"
+        ]
+      },
+      "focus": {
+        "role": "neutral",
+        "displayName": "Focus Blue",
+        "canonical": "#2d4a8a",
+        "tonalRamp": [
+          "#131f3a",
+          "#213664",
+          "#2e4c8e",
+          "#3c63b9",
+          "#6182cc",
+          "#8ca4d9",
+          "#bac8e8",
+          "#ecf0f9"
+        ]
+      },
+      "selection": {
+        "role": "neutral",
+        "displayName": "Selection",
+        "canonical": "#c9d4ef",
+        "tonalRamp": [
+          "#111e3b",
+          "#1e3366",
+          "#2b4992",
+          "#385ebd",
+          "#5e7fcf",
+          "#89a1dc",
+          "#b8c7ea",
+          "#ebeff9"
+        ]
+      },
+      "row-hover": {
+        "role": "neutral",
+        "displayName": "Row Hover",
+        "canonical": "#eeeadf",
+        "tonalRamp": [
+          "#322c1b",
+          "#574c2e",
+          "#7b6c41",
+          "#a08c55",
+          "#b6a576",
+          "#cabd9b",
+          "#dfd8c3",
+          "#f6f4ee"
+        ]
+      },
+      "carbon-paper": {
+        "role": "neutral",
+        "displayName": "Carbon copy: Manifest Paper",
+        "canonical": "#131a2a",
+        "tonalRamp": [
+          "#182135",
+          "#29395b",
+          "#3b5082",
+          "#4c68a9",
+          "#6f87be",
+          "#96a7cf",
+          "#c0cae2",
+          "#edf0f7"
+        ]
+      },
+      "carbon-paper-2": {
+        "role": "neutral",
+        "displayName": "Carbon copy: Form Tint",
+        "canonical": "#192136",
+        "tonalRamp": [
+          "#182034",
+          "#2a375b",
+          "#3c4f81",
+          "#4d66a7",
+          "#7085bd",
+          "#96a6cf",
+          "#c0cae2",
+          "#eef0f7"
+        ]
+      },
+      "carbon-paper-raised": {
+        "role": "neutral",
+        "displayName": "Carbon copy: Raised Sheet",
+        "canonical": "#1c2540",
+        "tonalRamp": [
+          "#171f35",
+          "#28355c",
+          "#394c83",
+          "#4b62aa",
+          "#6e82bf",
+          "#95a4d0",
+          "#bfc8e3",
+          "#edf0f7"
+        ]
+      },
+      "carbon-ink": {
+        "role": "neutral",
+        "displayName": "Carbon copy: Ink",
+        "canonical": "#dfe5f3",
+        "tonalRamp": [
+          "#151f38",
+          "#243660",
+          "#334d89",
+          "#4364b2",
+          "#6783c6",
+          "#90a5d5",
+          "#bcc9e6",
+          "#ecf0f8"
+        ]
+      },
+      "carbon-ink-2": {
+        "role": "neutral",
+        "displayName": "Carbon copy: Ink Secondary",
+        "canonical": "#b0bbd2",
+        "tonalRamp": [
+          "#1c2331",
+          "#303c54",
+          "#445578",
+          "#596f9c",
+          "#7a8cb3",
+          "#9eabc7",
+          "#c5cdde",
+          "#eff1f6"
+        ]
+      },
+      "carbon-ink-3": {
+        "role": "neutral",
+        "displayName": "Carbon copy: Ink Muted",
+        "canonical": "#8b97b3",
+        "tonalRamp": [
+          "#1e232e",
+          "#343d50",
+          "#4b5672",
+          "#617094",
+          "#818eac",
+          "#a3acc2",
+          "#c8cddb",
+          "#f0f1f5"
+        ]
+      },
+      "carbon-rule": {
+        "role": "neutral",
+        "displayName": "Carbon copy: Row Rule",
+        "canonical": "#2b3552",
+        "tonalRamp": [
+          "#1a2032",
+          "#2e3857",
+          "#41507c",
+          "#5468a1",
+          "#7687b7",
+          "#9ba7ca",
+          "#c3cadf",
+          "#eef0f6"
+        ]
+      },
+      "carbon-rule-strong": {
+        "role": "neutral",
+        "displayName": "Carbon copy: Strong Rule",
+        "canonical": "#4c5878",
+        "tonalRamp": [
+          "#1e222f",
+          "#333c51",
+          "#495574",
+          "#5f6e96",
+          "#7f8cae",
+          "#a1abc4",
+          "#c7ccdb",
+          "#eff1f5"
+        ]
+      },
+      "carbon-frame": {
+        "role": "neutral",
+        "displayName": "Carbon copy: Frame Ink",
+        "canonical": "#6c7898",
+        "tonalRamp": [
+          "#20232d",
+          "#373d4e",
+          "#4e576f",
+          "#657190",
+          "#848ea9",
+          "#a5acc0",
+          "#c9cdd9",
+          "#f0f1f4"
+        ]
+      },
+      "carbon-kraft": {
+        "role": "secondary",
+        "displayName": "Carbon copy: Kraft Board",
+        "canonical": "#3a2e20",
+        "tonalRamp": [
+          "#31271b",
+          "#55442f",
+          "#7a6043",
+          "#9e7d57",
+          "#b59978",
+          "#c9b49c",
+          "#ded2c4",
+          "#f6f3ef"
+        ]
+      },
+      "carbon-kraft-ink": {
+        "role": "secondary",
+        "displayName": "Carbon copy: Kraft Ink",
+        "canonical": "#f0e2c8",
+        "tonalRamp": [
+          "#3c2d10",
+          "#684e1c",
+          "#946f28",
+          "#c08f34",
+          "#d2a85b",
+          "#dec087",
+          "#ebd9b7",
+          "#faf4eb"
+        ]
+      },
+      "carbon-hit": {
+        "role": "primary",
+        "displayName": "Carbon copy: Stock Green (hit)",
+        "canonical": "#56a35f",
+        "tonalRamp": [
+          "#1a321d",
+          "#2e5733",
+          "#417c48",
+          "#55a05d",
+          "#76b77e",
+          "#9bcaa0",
+          "#c3dfc6",
+          "#eef6ef"
+        ]
+      },
+      "carbon-miss": {
+        "role": "primary",
+        "displayName": "Carbon copy: Carbon Blue (miss)",
+        "canonical": "#6f8fdc",
+        "tonalRamp": [
+          "#0f1d3e",
+          "#1a326b",
+          "#254798",
+          "#305cc5",
+          "#577cd6",
+          "#849fe1",
+          "#b5c6ed",
+          "#eaeffa"
+        ]
+      },
+      "carbon-stamp": {
+        "role": "tertiary",
+        "displayName": "Carbon copy: Stamp Red",
+        "canonical": "#e0604f",
+        "tonalRamp": [
+          "#41120b",
+          "#711f14",
+          "#a02c1c",
+          "#d03925",
+          "#e05e4d",
+          "#e8897d",
+          "#f1b8b1",
+          "#fbebe9"
+        ]
+      },
+      "carbon-ok": {
+        "role": "tertiary",
+        "displayName": "Carbon copy: Signal Green",
+        "canonical": "#5fb173",
+        "tonalRamp": [
+          "#193320",
+          "#2b5937",
+          "#3e7f4e",
+          "#50a565",
+          "#72ba84",
+          "#98cda5",
+          "#c1e1c9",
+          "#eef7f0"
+        ]
+      },
+      "carbon-focus": {
+        "role": "neutral",
+        "displayName": "Carbon copy: Focus Blue",
+        "canonical": "#8fb0ff",
+        "tonalRamp": [
+          "#00174c",
+          "#002785",
+          "#0038bd",
+          "#0048f5",
+          "#2e6cff",
+          "#6693ff",
+          "#a3beff",
+          "#e5edff"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display figure",
+        "purpose": "Live figures in a field box; unit set small and muted beside it."
+      },
+      "amount": {
+        "displayName": "Amount",
+        "purpose": "Ledger amounts and field-grid figures, unit in a fixed-width muted column."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Page title in the top bar only."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Panel heads and docket titles."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Prose, advice lines (max 62ch), table text."
+      },
+      "data": {
+        "displayName": "Data",
+        "purpose": "Every machine value: IPs, rates, sizes, times, docket numbers."
+      },
+      "label": {
+        "displayName": "Form label",
+        "purpose": "Condensed small caps naming the field, column or group beneath; never a kicker."
+      },
+      "stamp": {
+        "displayName": "Stamp",
+        "purpose": "The rubber stamp on exception dockets only."
+      }
+    },
+    "shadows": [
+      {
+        "name": "tooltip-lift",
+        "value": "0 6px 18px -6px rgb(0 0 0 / 0.25)",
+        "purpose": "Chart tooltips only; the one element that floats over content."
+      },
+      {
+        "name": "live-pulse",
+        "value": "0 0 0 0 color-mix(in srgb, var(--ok) 55%, transparent) to 0 0 0 7px transparent, 2s loop",
+        "purpose": "Animated ring on the live dot only."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "All transitions and the stamp."
+      },
+      {
+        "name": "state-transition",
+        "value": "150ms",
+        "purpose": "Background and border changes on buttons and nav links."
+      },
+      {
+        "name": "stamp-in",
+        "value": "160ms; rotate(-9deg) scale(1.35), opacity 0 to rotate(-4deg) scale(1)",
+        "purpose": "A newly arrived exception stamp lands once, no bounce; no motion under reduced motion."
+      },
+      {
+        "name": "pulse",
+        "value": "2s infinite",
+        "purpose": "Live dot while the live feed is on."
+      },
+      {
+        "name": "shimmer",
+        "value": "1.4s linear infinite",
+        "purpose": "Skeleton loading rows."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "stack",
+        "value": "1180px",
+        "purpose": "All spans go full width; Overview panels reorder: dock, live throughput, ledger, timeline, services."
+      },
+      {
+        "name": "mobile",
+        "value": "760px",
+        "purpose": "Rail becomes a horizontal icon strip; top bar wraps; 4/5-column field grids drop to 2; tables keep a 640px minimum inside a scroller."
+      }
+    ],
+    "themes": {
+      "light": "Manifest paper: the default, or [data-theme=light].",
+      "dark": "Carbon copy: prefers-color-scheme dark unless [data-theme=light], or [data-theme=dark]. The same custom properties are re-valued; carbon-* frontmatter keys record the dark values of their light counterparts."
+    },
+    "chartScaling": {
+      "robust": "Live charts scale to p95 x 1.25 of bar totals (with at least 10 points); clipped bars get a 3px ink cap and the tooltip keeps the true value."
+    }
+  },
+  "components": [
+    {
+      "name": "Button",
+      "kind": "button",
+      "refersTo": "button",
+      "description": "Default ink-framed button on a raised sheet; carries a 16px Lucide icon.",
+      "html": "<button class=\"ds-btn\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M5 22h14\"/><path d=\"M19.27 13.73A2.5 2.5 0 0 0 17.5 13h-11A2.5 2.5 0 0 0 4 15.5V17a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-1.5c0-.66-.26-1.3-.73-1.77Z\"/><path d=\"M14 13V8.5C14 7 15 7 15 5a3 3 0 0 0-3-3c-1.69 0-3 1-3 3s1 2 1 3.5V13\"/></svg> Sign off</button>",
+      "css": ".ds-btn { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border: 1px solid var(--frame, #2b2a26); border-radius: 3px; background: var(--paper-raised, #fbfaf6); color: var(--ink, #1b1b19); font-family: var(--font-ui, \"Archivo\", system-ui, sans-serif); font-weight: 600; font-size: 13px; cursor: pointer; transition: background-color 150ms cubic-bezier(0.16,1,0.3,1); } .ds-btn:hover { background: var(--paper-2, #ebe7db); } .ds-btn:active { transform: translateY(1px); } .ds-btn:focus-visible { outline: 2px solid var(--focus, #2d4a8a); outline-offset: 2px; }"
+    },
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Ink-filled button, used sparingly (login, save).",
+      "html": "<button class=\"ds-btn-primary\">Sign in</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; height: 32px; padding: 0 12px; border: 1px solid var(--ink, #1b1b19); border-radius: 3px; background: var(--ink, #1b1b19); color: var(--paper, #f5f3ec); font-family: var(--font-ui, \"Archivo\", system-ui, sans-serif); font-weight: 600; font-size: 13px; cursor: pointer; transition: background-color 150ms cubic-bezier(0.16,1,0.3,1); } .ds-btn-primary:hover { background: var(--ink-2, #47443d); } .ds-btn-primary:active { transform: translateY(1px); } .ds-btn-primary:focus-visible { outline: 2px solid var(--focus, #2d4a8a); outline-offset: 2px; }"
+    },
+    {
+      "name": "Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Labelled form field: small-caps label above a 32px raised-sheet input.",
+      "html": "<label class=\"ds-field\"><span class=\"ds-label\">Search</span><input class=\"ds-input\" placeholder=\"Client, IP or game\"></label>",
+      "css": ".ds-field { display: grid; gap: 5px; } .ds-label { font-family: var(--font-ui, \"Archivo\", system-ui, sans-serif); font-size: 11px; font-weight: 650; font-stretch: 75%; letter-spacing: 0.07em; text-transform: uppercase; color: var(--ink-3, #6b675d); } .ds-input { height: 32px; padding: 0 10px; border: 1px solid var(--rule-strong, #8f887a); border-radius: 3px; background: var(--paper-raised, #fbfaf6); color: var(--ink, #1b1b19); font-family: var(--font-ui, \"Archivo\", system-ui, sans-serif); font-size: 13px; } .ds-input::placeholder { color: var(--ink-3, #6b675d); } .ds-input:hover { border-color: var(--frame, #2b2a26); } .ds-input:focus { outline: 2px solid var(--focus, #2d4a8a); outline-offset: 0; border-color: var(--focus, #2d4a8a); }"
+    },
+    {
+      "name": "Kraft Rail Navigation",
+      "kind": "nav",
+      "refersTo": "nav-link",
+      "description": "Kraft folder rail; the active page is a paper tab running into the sheet.",
+      "html": "<nav class=\"ds-rail\"><a class=\"ds-nav active\" href=\"#\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect width=\"7\" height=\"9\" x=\"3\" y=\"3\" rx=\"1\"/><rect width=\"7\" height=\"5\" x=\"14\" y=\"3\" rx=\"1\"/><rect width=\"7\" height=\"9\" x=\"14\" y=\"12\" rx=\"1\"/><rect width=\"7\" height=\"5\" x=\"3\" y=\"16\" rx=\"1\"/></svg><span>Overview</span></a><a class=\"ds-nav\" href=\"#\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 17V3\"/><path d=\"m6 11 6 6 6-6\"/><path d=\"M19 21H5\"/></svg><span>Downloads</span></a><a class=\"ds-nav\" href=\"#\"><svg width=\"11\" height=\"11\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3\"/><path d=\"M12 9v4\"/><path d=\"M12 17h.01\"/></svg><span>Errors</span><span class=\"ds-count\">2</span></a></nav>",
+      "css": ".ds-rail { display: flex; flex-direction: column; gap: 2px; width: 216px; padding: 16px 0; background: var(--kraft, #b98e58); } .ds-nav { display: flex; align-items: center; gap: 10px; height: 36px; padding: 0 20px; margin-left: 8px; border-radius: 3px 0 0 3px; color: var(--kraft-ink, #241a0e); text-decoration: none; font-family: var(--font-ui, \"Archivo\", system-ui, sans-serif); font-weight: 560; font-size: 14px; transition: background-color 150ms cubic-bezier(0.16,1,0.3,1); } .ds-nav svg { width: 16px; height: 16px; } .ds-nav:hover { background: var(--kraft-2, #a97f4a); } .ds-nav.active { background: var(--paper, #f5f3ec); color: var(--ink, #1b1b19); } .ds-nav:focus-visible { outline: 2px solid var(--focus, #2d4a8a); outline-offset: 2px; } .ds-count { margin-left: auto; min-width: 20px; height: 18px; padding: 0 5px; display: inline-grid; place-items: center; border-radius: 9px; background: var(--stamp, #c23b2a); color: var(--on-stamp, #fff); font-family: var(--font-data, 'JetBrains Mono', monospace); font-size: 11px; }"
+    },
+    {
+      "name": "Status Tag",
+      "kind": "chip",
+      "refersTo": "tag",
+      "description": "Small-caps tag; status variants always carry an icon and a word.",
+      "html": "<span class=\"ds-tag\">Steam</span> <span class=\"ds-tag warn\"><svg width=\"11\" height=\"11\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3\"/><path d=\"M12 9v4\"/><path d=\"M12 17h.01\"/></svg> Slow</span> <span class=\"ds-tag bad\"><svg width=\"11\" height=\"11\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3\"/><path d=\"M12 9v4\"/><path d=\"M12 17h.01\"/></svg> Failing</span>",
+      "css": ".ds-tag { display: inline-flex; align-items: center; gap: 4px; height: 18px; padding: 0 6px; border: 1px solid var(--rule-strong, #8f887a); border-radius: 2px; color: var(--ink-2, #47443d); font-family: var(--font-ui, \"Archivo\", system-ui, sans-serif); font-size: 11px; font-weight: 650; font-stretch: 80%; letter-spacing: 0.05em; text-transform: uppercase; } .ds-tag.warn { border-color: var(--hazard, #e8b500); background: var(--hazard-wash, #f8efcc); color: var(--hazard-ink, #6e5100); } .ds-tag.bad { border-color: var(--stamp, #c23b2a); background: var(--stamp-wash, #f6e3dd); color: var(--stamp, #c23b2a); }"
+    },
+    {
+      "name": "Panel with Field Grid",
+      "kind": "card",
+      "refersTo": "panel",
+      "description": "Boxed section of the manifest form: frame box, 40px ruled head, labelled field boxes.",
+      "html": "<section class=\"ds-panel\"><header class=\"ds-panel-head\"><h2>Throughput</h2><span class=\"ds-meta\">last 2 min</span></header><div class=\"ds-fields\"><div><span class=\"ds-flabel\">From cache</span><span class=\"ds-figure\">298<small>Mbit/s</small></span></div><div><span class=\"ds-flabel\">From internet</span><span class=\"ds-figure\">176<small>Mbit/s</small></span></div></div></section>",
+      "css": ".ds-panel { border: 1px solid var(--frame, #2b2a26); border-radius: 3px; background: var(--paper, #f5f3ec); color: var(--ink, #1b1b19); font-family: var(--font-ui, \"Archivo\", system-ui, sans-serif); max-width: 380px; } .ds-panel-head { display: flex; align-items: center; min-height: 40px; padding: 0 16px; border-bottom: 1px solid var(--frame, #2b2a26); } .ds-panel-head h2 { margin: 0; font-size: 14px; font-weight: 700; } .ds-meta { margin-left: auto; font-size: 12px; color: var(--ink-3, #6b675d); } .ds-fields { display: grid; grid-template-columns: 1fr 1fr; } .ds-fields > div { display: grid; gap: 6px; padding: 10px 16px 12px; border-bottom: 1px solid var(--rule, #d6d0c1); } .ds-fields > div:first-child { border-right: 1px solid var(--rule, #d6d0c1); } .ds-flabel { font-size: 11px; font-weight: 650; font-stretch: 75%; letter-spacing: 0.07em; text-transform: uppercase; color: var(--ink-3, #6b675d); } .ds-figure { font-family: var(--font-data, \"JetBrains Mono\", ui-monospace, monospace); font-variant-numeric: tabular-nums slashed-zero; font-weight: 500; font-size: 28px; letter-spacing: -0.03em; line-height: 1; } .ds-figure small { font-size: 13px; font-weight: 450; letter-spacing: 0; color: var(--ink-3, #6b675d); margin-left: 3px; }"
+    },
+    {
+      "name": "Manifest Row with Split Bar",
+      "kind": "custom",
+      "refersTo": "manifest-row",
+      "description": "Ruled consignment line: client with docket number, mono rate, hit/miss split bar, session total.",
+      "html": "<table class=\"ds-manifest\"><thead><tr><th>Client</th><th class=\"n\">Rate</th><th>Served from cache</th><th class=\"n\">This session</th></tr></thead><tbody><tr><td><div class=\"ds-client\"><b>10.100.32.18</b><span>DL-00620</span></div></td><td class=\"n ds-d\"><i class=\"ds-live\"></i>197 Mbit/s</td><td><div class=\"ds-split\"><span class=\"h\" style=\"flex:68\"></span><span class=\"m\" style=\"flex:32\"></span></div><div class=\"ds-splitn\"><span>68% cached</span><span>934 MB in</span></div></td><td class=\"n ds-d\">2.89 GB</td></tr></tbody></table>",
+      "css": ".ds-manifest { width: 100%; border-collapse: collapse; font-family: var(--font-ui, \"Archivo\", system-ui, sans-serif); font-size: 13px; color: var(--ink, #1b1b19); background: var(--paper, #f5f3ec); } .ds-manifest th { height: 30px; padding: 0 12px; text-align: left; background: var(--paper-2, #ebe7db); font-size: 11px; font-weight: 650; font-stretch: 75%; letter-spacing: 0.07em; text-transform: uppercase; color: var(--ink-2, #47443d); border-bottom: 1px solid var(--frame, #2b2a26); } .ds-manifest td { height: 34px; padding: 4px 12px; border-bottom: 1px solid var(--rule, #d6d0c1); } .ds-manifest tbody tr:hover { background: var(--row-hover, #eeeadf); } .ds-manifest .n { text-align: right; white-space: nowrap; } .ds-d { font-family: var(--font-data, \"JetBrains Mono\", ui-monospace, monospace); font-variant-numeric: tabular-nums slashed-zero; letter-spacing: -0.01em; } .ds-client { display: grid; gap: 1px; line-height: 1.25; } .ds-client b { font-family: var(--font-data, \"JetBrains Mono\", ui-monospace, monospace); font-variant-numeric: tabular-nums slashed-zero; font-weight: 400; } .ds-client span { font-family: var(--font-data, \"JetBrains Mono\", ui-monospace, monospace); font-variant-numeric: tabular-nums slashed-zero; font-size: 11px; color: var(--ink-3, #6b675d); } .ds-live { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--hit, #3e8a48); margin-right: 6px; } .ds-split { display: flex; gap: 2px; height: 8px; min-width: 110px; } .ds-split .h { background: var(--hit, #3e8a48); border-radius: 2px 0 0 2px; } .ds-split .m { background: var(--miss, #34539a); border-radius: 0 2px 2px 0; } .ds-splitn { display: flex; justify-content: space-between; gap: 8px; margin-top: 4px; font-family: var(--font-data, \"JetBrains Mono\", ui-monospace, monospace); font-variant-numeric: tabular-nums slashed-zero; font-size: 11px; color: var(--ink-3, #6b675d); }"
+    },
+    {
+      "name": "Exception Docket and Stamp",
+      "kind": "custom",
+      "refersTo": "docket",
+      "description": "Open exception as a docket; the ink-red stamp lands off-axis with one 160 ms thud.",
+      "html": "<article class=\"ds-docket\"><div><h3>DNS lookups failing</h3><div class=\"ds-where\">steamcontent.com</div></div><span class=\"ds-stamp\">Open <b>&#215;10</b></span><p class=\"ds-advice\">The cache could not resolve the CDN hostname through UPSTREAM_DNS. Check AdGuard is up.</p><div class=\"ds-foot\"><span>21:59:44&#8211;22:13:23</span><button class=\"ds-sign\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M5 22h14\"/><path d=\"M19.27 13.73A2.5 2.5 0 0 0 17.5 13h-11A2.5 2.5 0 0 0 4 15.5V17a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-1.5c0-.66-.26-1.3-.73-1.77Z\"/><path d=\"M14 13V8.5C14 7 15 7 15 5a3 3 0 0 0-3-3c-1.69 0-3 1-3 3s1 2 1 3.5V13\"/></svg> Sign off</button></div></article>",
+      "css": ".ds-docket { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 6px 12px; padding: 12px 16px; max-width: 380px; border: 1px solid var(--frame, #2b2a26); border-radius: 3px; background: var(--paper-raised, #fbfaf6); color: var(--ink, #1b1b19); font-family: var(--font-ui, \"Archivo\", system-ui, sans-serif); } .ds-docket h3 { margin: 0; font-size: 14px; font-weight: 700; } .ds-where { font-family: var(--font-data, \"JetBrains Mono\", ui-monospace, monospace); font-variant-numeric: tabular-nums slashed-zero; font-size: 12px; color: var(--ink-2, #47443d); } .ds-advice { grid-column: 1 / -1; margin: 0; font-size: 12px; color: var(--ink-2, #47443d); } .ds-foot { grid-column: 1 / -1; display: flex; align-items: center; gap: 12px; font-family: var(--font-data, \"JetBrains Mono\", ui-monospace, monospace); font-variant-numeric: tabular-nums slashed-zero; font-size: 12px; color: var(--ink-3, #6b675d); } .ds-stamp { align-self: start; display: inline-flex; gap: 5px; padding: 3px 8px 2px; border: 2px solid var(--stamp, #c23b2a); border-radius: 4px; color: var(--stamp, #c23b2a); font-size: 12px; font-weight: 800; font-stretch: 70%; letter-spacing: 0.08em; text-transform: uppercase; transform: rotate(-4deg); animation: ds-stamp-in 160ms cubic-bezier(0.16,1,0.3,1) both; } .ds-stamp b { font-family: var(--font-data, 'JetBrains Mono', monospace); letter-spacing: 0; } @keyframes ds-stamp-in { from { transform: rotate(-9deg) scale(1.35); opacity: 0; } to { transform: rotate(-4deg) scale(1); opacity: 1; } } @media (prefers-reduced-motion: reduce) { .ds-stamp { animation: none; } } .ds-sign { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 8px; border: 1px solid var(--frame, #2b2a26); border-radius: 3px; background: var(--paper-raised, #fbfaf6); color: var(--ink, #1b1b19); font-family: var(--font-ui, \"Archivo\", system-ui, sans-serif); font-weight: 600; font-size: 12px; cursor: pointer; transition: background-color 150ms cubic-bezier(0.16,1,0.3,1); } .ds-sign:hover { background: var(--paper-2, #ebe7db); } .ds-sign:focus-visible { outline: 2px solid var(--focus, #2d4a8a); outline-offset: 2px; }"
+    },
+    {
+      "name": "Event Ledger",
+      "kind": "custom",
+      "refersTo": "panel",
+      "description": "Ruled ledger lines with mono amounts and a double-ruled total; no stat tiles.",
+      "html": "<table class=\"ds-ledger\"><tr><th><i class=\"h\"></i>Served from cache</th><td><span class=\"a\">103</span><span class=\"u\">GB</span></td></tr><tr><th><i class=\"m\"></i>Pulled from internet</th><td><span class=\"a\">62.2</span><span class=\"u\">GB</span></td></tr><tr class=\"t\"><th>Delivered to clients</th><td><span class=\"a\">165</span><span class=\"u\">GB</span></td></tr></table>",
+      "css": ".ds-ledger { width: 100%; max-width: 380px; border-collapse: collapse; background: var(--paper, #f5f3ec); color: var(--ink, #1b1b19); font-family: var(--font-ui, \"Archivo\", system-ui, sans-serif); } .ds-ledger th { padding: 10px 16px 8px; text-align: left; font-weight: 560; font-size: 13px; color: var(--ink-2, #47443d); border-bottom: 1px solid var(--rule, #d6d0c1); } .ds-ledger th i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 8px; } .ds-ledger i.h { background: var(--hit, #3e8a48); } .ds-ledger i.m { background: var(--miss, #34539a); } .ds-ledger td { padding: 8px 16px 6px; text-align: right; border-bottom: 1px solid var(--rule, #d6d0c1); white-space: nowrap; } .ds-ledger .a { font-family: var(--font-data, \"JetBrains Mono\", ui-monospace, monospace); font-variant-numeric: tabular-nums slashed-zero; font-size: 23px; font-weight: 500; letter-spacing: -0.03em; } .ds-ledger .u { display: inline-block; width: 2.4em; margin-left: 4px; text-align: left; font-family: var(--font-data, 'JetBrains Mono', monospace); font-size: 12px; color: var(--ink-3, #6b675d); } .ds-ledger tr.t th, .ds-ledger tr.t td { border-top: 3px double var(--frame, #2b2a26); border-bottom: 1px solid var(--frame, #2b2a26); } .ds-ledger tr.t th { color: var(--ink, #1b1b19); font-weight: 700; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Freight Manifest",
+    "overview": "The cache is the venue's local warehouse. A hit ships from stock, a miss is imported over the WAN, every download is a consignment line on today's manifest, and every failure is an exception stamped on a docket until a crew member signs it off. The interface is a pre-printed manifest form: off-white paper boxed and ruled in near-black ink, filled in with typed tabular mono, held in a kraft-board folder (the rail). The dark theme is the carbon copy of the same form: a blue-black carbon sheet with a pale impression, not an inverted light theme.\n\nDensity is high and deliberate. A crew member at a NOC laptop reads ruled tables, boxed form fields and ledger lines, never a grid of equal stat tiles over pastel line charts. Colour is spent almost entirely on data: stock green and carbon blue for hit and miss, stamp red and hazard yellow for trouble. Everything else is paper, ink and kraft.\n\nThe world has one signature motion: the rubber stamp landing on a new exception. Beyond that there is only the live pulse, the loading shimmer and 150 ms state transitions.",
+    "keyCharacteristics": [
+      "Paper ground, ink frames, kraft shell; carbon copy in the dark.",
+      "Condensed small-caps form labels over typed tabular-mono data.",
+      "Ruled manifest tables and boxed field grids instead of cards and tiles.",
+      "Hit/miss split bar on every consignment line as the persistent second voice.",
+      "Flat colour throughout: no gradients, no glows, one functional shadow.",
+      "The stamp: ink-red, off-axis, one 160 ms thud."
+    ],
+    "rules": [
+      {
+        "name": "The Data Owns Colour Rule",
+        "body": "Saturated colour appears only as data (hit, miss, service) or status (stamp, hazard, ok). Chrome is paper, ink and kraft.",
+        "section": "colors"
+      },
+      {
+        "name": "The Validated Pair Rule",
+        "body": "Hit and miss values are the validated pair in both modes (light #3e8a48 / #34539a, dark #56a35f / #6f8fdc). Do not drift them toward the contract's original #3A7D44 / #2D4A8A; the miss step was chosen as the nearest passing value.",
+        "section": "colors"
+      },
+      {
+        "name": "The Reserved Status Rule",
+        "body": "Stamp red, hazard yellow and ok green mean status and nothing else, and each is paired with an icon and a word. Never use them for decoration, for a service, or for a series.",
+        "section": "colors"
+      },
+      {
+        "name": "The Folded Tail Rule",
+        "body": "Only four services own a hue. Everything else is svc-other and is always labelled by name.",
+        "section": "colors"
+      },
+      {
+        "name": "The Typed Entry Rule",
+        "body": "If a machine produced the value, it is set in JetBrains Mono with tabular, slashed-zero figures. If the form printed it, it is Archivo.",
+        "section": "typography"
+      },
+      {
+        "name": "The Label Belongs To A Field Rule",
+        "body": "Small-caps labels name the field, column or group directly beneath them. They are never free-floating kickers above a heading.",
+        "section": "typography"
+      },
+      {
+        "name": "The Printed Not Lit Rule",
+        "body": "Separation comes from ink rules and fills. A new surface that needs a shadow is a tooltip or a popover; nothing resting on the page gets one.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** set every machine value (IP, rate, size, time, docket number) in JetBrains Mono with tabular, slashed-zero figures.",
+      "**Do** box panels with a 1px frame rule at 3px corners and separate rows with 1px rule lines.",
+      "**Do** show hit and miss together and always name them \"From cache\" and \"From internet\".",
+      "**Do** put a split bar on every consignment row.",
+      "**Do** pair every status colour with an icon and a word.",
+      "**Do** fold services beyond Steam, Epic Games, Blizzard and WSUS into svc-other and label them by name.",
+      "**Do** scale live charts to p95×1.25 and cap clipped bars with an ink mark.",
+      "**Do** say \"No exceptions\" plainly in one quiet line when the band is empty.",
+      "**Do** design the carbon copy as its own blue-black sheet, using the carbon tokens."
+    ],
+    "donts": [
+      "**Don't** build a grid of equal stat tiles; totals are ledger lines or field boxes.",
+      "**Don't** use gradients or glows on data or status colours.",
+      "**Don't** add shadows to anything resting on the page; only tooltips float.",
+      "**Don't** use stamp red, hazard yellow or ok green for a service, a series or decoration.",
+      "**Don't** set small-caps labels as kickers or eyebrows above headings.",
+      "**Don't** put freight vocabulary (\"freight\", \"pallet\", \"shipment\") in column headers; the world supplies type, palette, density and the stamp, and labels stay plain.",
+      "**Don't** add motion beyond the stamp landing, the live pulse, the loading shimmer and 150 ms state transitions."
+    ]
+  }
+}

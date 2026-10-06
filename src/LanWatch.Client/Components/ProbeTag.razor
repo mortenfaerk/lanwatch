@@ -1,0 +1,16 @@
+@* A probe's state as a tag: icon + word, never colour alone. *@
+@{
+    var (css, icon, word) = State switch
+    {
+        ProbeState.Ok => ("good", "circle-check", "OK"),
+        ProbeState.Warn => ("warn", "triangle-alert", "Check"),
+        ProbeState.Fail => ("bad", "triangle-alert", "Failing"),
+        ProbeState.NotConfigured => ("", "circle-help", "Not set up"),
+        _ => ("", "refresh-cw", "Checking"),
+    };
+}
+<span class="tag @css"><Icon Name="@icon" />@word</span>
+
+@code {
+    [Parameter] public ProbeState State { get; set; }
+}

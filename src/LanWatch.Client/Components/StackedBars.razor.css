@@ -1,0 +1,52 @@
+.bars {
+    cursor: crosshair;
+    user-select: none;
+}
+
+.ytick {
+    position: absolute;
+    left: 0;
+    transform: translateY(2px);
+    padding-right: 6px;
+    background: var(--paper);
+    font-family: var(--font-data);
+    font-size: 10.5px;
+    color: var(--ink-3);
+    pointer-events: none;
+}
+
+.ytick.idle {
+    top: 40%;
+    font-family: var(--font-ui);
+    font-size: var(--fs-12);
+    background: transparent;
+}
+
+.xaxis {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 14px;
+}
+
+.xaxis span {
+    position: absolute;
+    transform: translateX(-50%);
+    font-family: var(--font-data);
+    font-size: 10.5px;
+    color: var(--ink-3);
+    white-space: nowrap;
+}
+
+.xaxis span:first-child {
+    transform: none;
+}
+
+.xaxis span:last-child {
+    transform: translateX(-100%);
+}
+
+.cap {
+    fill: var(--ink);
+}

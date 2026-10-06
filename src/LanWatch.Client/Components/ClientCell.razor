@@ -1,0 +1,22 @@
+<div class="client">
+    @if (Gateway)
+    {
+        <b title="Traffic arrived through the Docker gateway, so the real client IP is not in the log">Hidden behind Docker</b>
+        <span class="data">@Ip</span>
+    }
+    else if (!string.IsNullOrEmpty(Name))
+    {
+        <b>@Name</b>
+        <span class="data">@Ip</span>
+    }
+    else
+    {
+        <b class="data" style="font-size:var(--fs-13);color:var(--ink)">@Ip</b>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Ip { get; set; } = "";
+    [Parameter] public string? Name { get; set; }
+    [Parameter] public bool Gateway { get; set; }
+}

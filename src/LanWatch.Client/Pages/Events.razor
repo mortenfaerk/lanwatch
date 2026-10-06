@@ -1,0 +1,126 @@
+@page "/events"
+@inject Api Api
+@implements IDisposable
+@inject ScopeState Scope
+
+<PageTitle>Events · LanWatch</PageTitle>
+<SectionContent SectionName="title"><h1>Events</h1></SectionContent>
+
+<p class="secondary" style="max-width:72ch">
+    LanWatch starts a new event when the cache has been quiet for 12 hours or more, and stretches it while traffic keeps coming.
+    Rename them freely. Changing the start or end hands the event over to you, and the detector will leave it alone.
+</p>
+
+<section class="panel" aria-label="LAN events">
+    <div class="panel-body flush table-wrap">
+        <table class="manifest">
+            <thead>
+                <tr><th>Name</th><th>Start</th><th>End</th><th>Length</th><th>Bounds</th><th class="tight"></th></tr>
+            </thead>
+            <tbody>
+                @if (Scope.Events.Count == 0)
+                {
+                    <tr><td colspan="6"><div class="empty"><b>No events yet.</b><span>The first one appears once the cache has moved at least 1 GB.</span></div></td></tr>
+                }
+                @foreach (var e in Scope.Events)
+                {
+                    if (_editId == e.Id)
+                    {
+                        <tr>
+                            <td><input class="input" @bind="_name" maxlength="80" aria-label="Event name" /></td>
+                            <td><input class="input" type="datetime-local" @bind="_start" aria-label="Start" /></td>
+                            <td><input class="input" type="datetime-local" @bind="_end" aria-label="End" /></td>
+                            <td colspan="2" class="muted">Times are in your local time zone.</td>
+                            <td class="tight">
+                                <button class="btn sm primary" @onclick="() => SaveAsync(e)"><Icon Name="check" /> Save</button>
+                                <button class="btn sm ghost" @onclick="() => _editId = null">Cancel</button>
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        <tr>
+                            <td><b>@e.Name</b></td>
+                            <td class="data">@Format.DayTime(e.StartUnix)</td>
+                            <td class="data">@Format.DayTime(e.EndUnix)</td>
+                            <td class="data">@Format.Duration(e.EndUnix - e.StartUnix)</td>
+                            <td>@(e.IsAuto ? "Detected" : "Set by crew")</td>
+                            <td class="tight">
+                                <button class="btn sm ghost" @onclick="() => Edit(e)"><Icon Name="pencil" /> Edit</button>
+                                <button class="btn sm ghost" @onclick="() => Scope.Select(e.Id)">View</button>
+                                @if (_confirmDelete == e.Id)
+                                {
+                                    <button class="btn sm" style="color:var(--stamp);border-color:var(--stamp)" @onclick="() => DeleteAsync(e)">Delete for good</button>
+                                }
+                                else
+                                {
+                                    <button class="btn sm ghost" @onclick="() => _confirmDelete = e.Id" title="Removes the event only; traffic data stays"><Icon Name="x" /></button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</section>
+@if (_error is not null)
+{
+    <p class="error-text" role="alert"><Icon Name="triangle-alert" /> @_error</p>
+}
+
+@code {
+    protected override void OnInitialized() => Scope.Changed += Refresh;
+
+    private void Refresh() => InvokeAsync(StateHasChanged);
+
+    public void Dispose() => Scope.Changed -= Refresh;
+
+    private int? _editId;
+    private int? _confirmDelete;
+    private string _name = "";
+    private DateTime _start;
+    private DateTime _end;
+    private string? _error;
+
+    private void Edit(LanEventDto e)
+    {
+        _editId = e.Id;
+        _name = e.Name;
+        _start = Format.Local(e.StartUnix).DateTime;
+        _end = Format.Local(e.EndUnix).DateTime;
+        _error = null;
+    }
+
+    private async Task SaveAsync(LanEventDto e)
+    {
+        try
+        {
+            var start = new DateTimeOffset(_start, TimeZoneInfo.Local.GetUtcOffset(_start)).ToUnixTimeSeconds();
+            var end = new DateTimeOffset(_end, TimeZoneInfo.Local.GetUtcOffset(_end)).ToUnixTimeSeconds();
+            await Api.UpdateEvent(e.Id, new LanEventUpsert(_name, start, end));
+            _editId = null;
+            await ReloadAsync();
+        }
+        catch (Exception ex) when (ex is ApiException or HttpRequestException)
+        {
+            _error = $"Could not save: {ex.Message}";
+        }
+    }
+
+    private async Task DeleteAsync(LanEventDto e)
+    {
+        try
+        {
+            await Api.DeleteEvent(e.Id);
+            _confirmDelete = null;
+            await ReloadAsync();
+        }
+        catch (Exception ex) when (ex is ApiException or HttpRequestException)
+        {
+            _error = $"Could not delete: {ex.Message}";
+        }
+    }
+
+    private async Task ReloadAsync() => Scope.SetEvents(await Api.Events() ?? []);
+}

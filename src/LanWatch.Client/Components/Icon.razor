@@ -1,0 +1,7 @@
+<svg class="icon @Class" aria-hidden="true" focusable="false"><use href="icons.svg#i-@Name"></use></svg>
+
+@code {
+    /// <summary>Lucide icon name from the sprite (wwwroot/icons.svg).</summary>
+    [Parameter, EditorRequired] public string Name { get; set; } = "";
+    [Parameter] public string? Class { get; set; }
+}

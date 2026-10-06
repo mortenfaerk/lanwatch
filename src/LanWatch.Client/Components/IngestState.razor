@@ -1,0 +1,26 @@
+@implements IDisposable
+@inject LiveConnection Live
+
+<div class="ingest" title="Log ingestion">
+    <span class="label">Log reader</span>
+    @if (Live.Last is null)
+    {
+        <span>Waiting for the server…</span>
+    }
+    else if (!Live.Last.CaughtUp)
+    {
+        <span>Importing log history…</span>
+    }
+    else
+    {
+        <span>Up to date · @Live.Last.ActiveClients active @(Live.Last.ActiveClients == 1 ? "client" : "clients")</span>
+    }
+</div>
+
+@code {
+    protected override void OnInitialized() => Live.Tick += OnTick;
+
+    private void OnTick(LiveTick _) => InvokeAsync(StateHasChanged);
+
+    public void Dispose() => Live.Tick -= OnTick;
+}

@@ -1,0 +1,326 @@
+@page "/"
+@implements IDisposable
+@inject Api Api
+@inject ScopeState Scope
+@inject LiveConnection Live
+
+<PageTitle>Overview · LanWatch</PageTitle>
+<SectionContent SectionName="title"><h1>Overview</h1></SectionContent>
+
+<section aria-labelledby="exc-h">
+    <h2 id="exc-h" class="sr-only">Exceptions</h2>
+    <ExceptionBand />
+</section>
+
+<div class="grid-12 overview-grid">
+    @if (Scope.IsLive)
+    {
+        <div class="span-8 stack">
+        <section class="panel o-dock" aria-labelledby="dock-h">
+            <header class="panel-head">
+                <h2 id="dock-h">Downloading now</h2>
+                <div class="meta">
+                    <span class="key"><i class="h"></i>From cache</span>
+                    <span class="key"><i class="m"></i>From internet</span>
+                    <a href="downloads?active=true">All active</a>
+                </div>
+            </header>
+            <div class="panel-body flush table-wrap">
+                <table class="manifest">
+                    <thead>
+                        <tr>
+                            <th>Client</th>
+                            <th>Game</th>
+                            <th class="num">Rate</th>
+                            <th style="width:150px">Served from cache</th>
+                            <th class="num">This session</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Live.Last is null)
+                        {
+                            <SkeletonRows Rows="5" Columns="5" />
+                        }
+                        else if (Live.Last.Active.Count == 0 && RecentDone.Count == 0)
+                        {
+                            <tr>
+                                <td colspan="5">
+                                    <div class="empty">
+                                        <b>Nobody is downloading right now.</b>
+                                        <span>A row appears here within seconds of a client pulling a game through the cache, with how much of it came from stock.</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var d in VisibleActive)
+                            {
+                                <tr @key="(d.ClientIp, d.Content.Service, d.Content.Id)">
+                                    <td><div class="with-docket"><ClientCell Ip="@d.ClientIp" Name="@d.ClientName" Gateway="@IsGateway(d.ClientIp)" /><span class="docket-no">@(d.DocketId is { } id ? Format.Docket(id) : "")</span></div></td>
+                                    <td><GameCell Content="d.Content" /></td>
+                                    <td class="num data">
+                                        @if (d.BytesPerSecond > 0)
+                                        {
+                                            <span class="dot-live" aria-hidden="true"></span>@Format.Rate(d.BytesPerSecond)
+                                        }
+                                        else
+                                        {
+                                            <span class="muted">idle</span>
+                                        }
+                                    </td>
+                                    <td><SplitBar Hit="(long)(d.SessionBytes * d.HitRatio)" Miss="(long)(d.SessionBytes * (1 - d.HitRatio))" /></td>
+                                    <td class="num data">@Format.Bytes(d.SessionBytes)</td>
+                                </tr>
+                            }
+                            @if (RecentDone.Count > 0)
+                            {
+                                <tr class="sub-head"><td colspan="5"><span class="label">Finished recently</span></td></tr>
+                                @foreach (var d in RecentDone)
+                                {
+                                    <tr class="done" @key="d.Id">
+                                        <td><div class="with-docket"><ClientCell Ip="@d.ClientIp" Name="@d.ClientName" Gateway="@IsGateway(d.ClientIp)" /><span class="docket-no">@Format.Docket(d.Id)</span></div></td>
+                                        <td><GameCell Content="d.Content" /></td>
+                                        <td class="num data muted">done @Format.Time(d.LastUnix)</td>
+                                        <td><SplitBar Hit="d.HitBytes" Miss="d.MissBytes" /></td>
+                                        <td class="num data">@Format.Bytes(d.HitBytes + d.MissBytes)</td>
+                                    </tr>
+                                }
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+            @if (HiddenActive > 0)
+            {
+                <div class="pager"><span>@HiddenActive more idle in the last minute</span><span class="spacer"></span><a href="downloads?active=true">See all active downloads</a></div>
+            }
+        </section>
+        @TimelinePanel
+        </div>
+
+        <div class="span-4 stack">
+            <section class="panel o-live" aria-labelledby="tp-h">
+                <header class="panel-head">
+                    <h2 id="tp-h">Throughput</h2>
+                    <div class="meta">last 2 min</div>
+                </header>
+                <div class="fields cols-2">
+                    <div>
+                        <span class="label"><span class="key"><i class="h"></i></span> From cache</span>
+                        @{ var (hv, hu) = Format.RateParts(Live.Last?.HitBytesPerSecond ?? 0); }
+                        <span class="figure">@hv<small>@hu</small></span>
+                    </div>
+                    <div>
+                        <span class="label"><span class="key"><i class="m"></i></span> From internet</span>
+                        @{ var (mv, mu) = Format.RateParts(Live.Last?.MissBytesPerSecond ?? 0); }
+                        <span class="figure">@mv<small>@mu</small></span>
+                    </div>
+                </div>
+                <div class="panel-body">
+                    <StackedBars Points="LiveBars" Height="132" XTicks="3" Robust="true" XLabel="Format.TimeSec" TooltipTime="Format.TimeSec"
+                                 Label="Throughput per second over the last two minutes" />
+                </div>
+            </section>
+            <div class="o-ledger"><Ledger Overview="_overview" Failed="_failed" /></div>
+            @MixPanel
+        </div>
+    }
+    else
+    {
+        <div class="span-8 stack">
+        <section class="panel o-dock" aria-labelledby="top-h">
+            <header class="panel-head">
+                <h2 id="top-h">Biggest downloads</h2>
+                <div class="meta"><a href="games">All games</a></div>
+            </header>
+            <div class="panel-body flush table-wrap">
+                <table class="manifest">
+                    <thead>
+                        <tr>
+                            <th>Game</th>
+                            <th class="num">Clients</th>
+                            <th style="width:24%">Served from cache</th>
+                            <th class="num">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (_top is null)
+                        {
+                            <SkeletonRows Rows="6" Columns="4" />
+                        }
+                        else if (_top.Count == 0)
+                        {
+                            <tr><td colspan="4"><div class="empty"><b>No downloads in this event.</b></div></td></tr>
+                        }
+                        else
+                        {
+                            @foreach (var c in _top.Take(10))
+                            {
+                                <tr>
+                                    <td><GameCell Content="c.Content" /></td>
+                                    <td class="num data">@c.Clients</td>
+                                    <td><SplitBar Hit="c.HitBytes" Miss="c.MissBytes" /></td>
+                                    <td class="num data">@Format.Bytes(c.HitBytes + c.MissBytes)</td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        @TimelinePanel
+        </div>
+        <div class="span-4 stack">
+            <div class="o-ledger"><Ledger Overview="_overview" Failed="_failed" /></div>
+            @MixPanel
+        </div>
+    }
+
+</div>
+
+@code {
+    // The two columns stack independently, so no panel is stretched around empty space.
+    private RenderFragment TimelinePanel => @<text>
+    <section class="panel o-timeline" aria-labelledby="tl-h">
+        <header class="panel-head">
+            <h2 id="tl-h">Event throughput</h2>
+            <div class="meta">
+                @if (_overview is not null)
+                {
+                    <span>@Format.Range(_overview.Scope.FromUnix, _overview.Scope.ToUnix)</span>
+                }
+                <span class="key"><i class="h"></i>From cache</span>
+                <span class="key"><i class="m"></i>From internet</span>
+            </div>
+        </header>
+        <div class="panel-body">
+            @if (_series is null)
+            {
+                <span class="skeleton" style="height:180px"></span>
+            }
+            else
+            {
+                <StackedBars Points="TimelineBars" Height="200" Label="Average throughput over the event" />
+            }
+        </div>
+    </section>
+    </text>;
+
+    private RenderFragment MixPanel => @<text>
+    <section class="panel o-mix" aria-labelledby="mix-h">
+        <header class="panel-head"><h2 id="mix-h">By service</h2></header>
+        <div class="panel-body">
+            @if (_overview is null)
+            {
+                <span class="skeleton" style="height:14px"></span>
+            }
+            else
+            {
+                <ServiceMix Services="_overview.Services" />
+            }
+        </div>
+    </section>
+    </text>;
+
+    private OverviewDto? _overview;
+    private TimeSeriesDto? _series;
+    private List<ContentTotalDto>? _top;
+    private PagedResult<DownloadDto>? _recent;
+    private HashSet<string> _gateways = [];
+    private bool _failed;
+
+    private const int DockRows = 10;
+
+    // Everything moving now, then the biggest idle sessions, up to ten rows.
+    private IEnumerable<LiveDownload> VisibleActive =>
+        Live.Last is null ? [] :
+        Live.Last.Active.Where(a => a.BytesPerSecond > 0)
+            .Concat(Live.Last.Active.Where(a => a.BytesPerSecond == 0).OrderByDescending(a => a.SessionBytes))
+            .Take(Math.Max(DockRows, Live.Last.Active.Count(a => a.BytesPerSecond > 0)));
+
+    private const int DockMinRows = 9;
+
+    // Recently finished downloads keep the table at a steady height when only a few are live.
+    private List<DownloadDto> RecentDone
+    {
+        get
+        {
+            var live = VisibleActive.Count();
+            var room = DockMinRows - live;
+            if (room <= 1 || _recent is null) return [];
+            var shown = Live.Last?.Active.Select(a => (a.ClientIp, a.Content.Name)).ToHashSet() ?? [];
+            return _recent.Items.Where(d => !d.Active && !shown.Contains((d.ClientIp, d.Content.Name)) && d.HitBytes + d.MissBytes > 1_000_000)
+                .Take(room - 1).ToList();
+        }
+    }
+
+    private int HiddenActive => Live.Last is null ? 0 : Live.Last.Active.Count - VisibleActive.Count();
+
+    private IReadOnlyList<StackedBars.Bar> LiveBars =>
+        Live.Last?.Window.Select(w => new StackedBars.Bar(w.T, w.HitBytes, w.MissBytes)).ToList() ?? [];
+
+    private IReadOnlyList<StackedBars.Bar> TimelineBars =>
+        _series?.Points.Select(p => new StackedBars.Bar(p.T, p.HitBytes / (double)_series.BucketSeconds,
+            p.MissBytes / (double)_series.BucketSeconds, p.ErrorRequests)).ToList() ?? [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        Scope.Changed += OnScopeChanged;
+        Live.Tick += OnTick;
+        Live.DataChanged += OnDataChanged;
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        try
+        {
+            var overview = Api.Overview();
+            var series = Api.TimeSeries(points: 180);
+            var system = Api.System();
+            Task<List<ContentTotalDto>?> top = Scope.IsLive ? Task.FromResult<List<ContentTotalDto>?>(null) : Api.Content(take: 10);
+            Task<PagedResult<DownloadDto>?> recent = Scope.IsLive ? Api.Downloads(null, null, null, false, 0, 20) : Task.FromResult<PagedResult<DownloadDto>?>(null);
+            _overview = await overview;
+            _series = await series;
+            _gateways = (await system)?.DockerGatewayIps.ToHashSet() ?? [];
+            _top = await top;
+            _recent = await recent;
+            _failed = false;
+        }
+        catch (HttpRequestException)
+        {
+            _failed = true;
+        }
+    }
+
+    private bool IsGateway(string ip) => _gateways.Contains(ip);
+
+    private async void OnScopeChanged()
+    {
+        _overview = null;
+        _series = null;
+        _top = null;
+        await InvokeAsync(StateHasChanged);
+        await LoadAsync();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async void OnDataChanged()
+    {
+        await LoadAsync();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void OnTick(LiveTick _)
+    {
+        if (Scope.IsLive) InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        Scope.Changed -= OnScopeChanged;
+        Live.Tick -= OnTick;
+        Live.DataChanged -= OnDataChanged;
+    }
+}

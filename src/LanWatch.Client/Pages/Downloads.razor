@@ -1,0 +1,183 @@
+@page "/downloads"
+@implements IDisposable
+@inject Api Api
+@inject ScopeState Scope
+@inject LiveConnection Live
+@inject NavigationManager Nav
+
+<PageTitle>Downloads · LanWatch</PageTitle>
+<SectionContent SectionName="title"><h1>Downloads</h1></SectionContent>
+
+<div class="toolbar" role="search">
+    <label class="field grow">
+        <span class="label">Search</span>
+        <input class="input" type="search" placeholder="Game, depot or client IP" @bind="Q" @bind:event="oninput" @bind:after="OnFilterChanged" />
+    </label>
+    <label class="field">
+        <span class="label">Service</span>
+        <select class="select" @bind="Service" @bind:after="OnFilterChanged">
+            <option value="">All services</option>
+            @foreach (var s in Svc.Order)
+            {
+                <option value="@s">@Svc.Name(s)</option>
+            }
+        </select>
+    </label>
+    @if (!string.IsNullOrEmpty(Client))
+    {
+        <div class="field">
+            <span class="label">Client</span>
+            <button class="btn" @onclick="ClearClient" title="Show all clients"><span class="data">@Client</span> <Icon Name="x" /></button>
+        </div>
+    }
+    <label class="check" style="height:32px">
+        <input type="checkbox" @bind="Active" @bind:after="OnFilterChanged" disabled="@(!Scope.IsLive)" />
+        Active in the last 2 min
+    </label>
+</div>
+
+<section class="panel" aria-label="Download sessions">
+    <div class="panel-body flush table-wrap">
+        <table class="manifest">
+            <thead>
+                <tr>
+                    <th class="tight">Docket</th>
+                    <th>Client</th>
+                    <th>Game</th>
+                    <th>Started</th>
+                    <th class="num">Duration</th>
+                    <th style="width:18%">Served from cache</th>
+                    <th class="num">Size</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (_page is null)
+                {
+                    <SkeletonRows Rows="12" Columns="7" />
+                }
+                else if (_page.Items.Count == 0)
+                {
+                    <tr>
+                        <td colspan="7">
+                            <div class="empty">
+                                <b>No downloads match.</b>
+                                <span>A download is one client pulling one game; a five-minute pause starts a new one. Try clearing the filters or picking another event.</span>
+                            </div>
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var d in _page.Items)
+                    {
+                        <tr @key="d.Id">
+                            <td class="data muted tight">@Format.Docket(d.Id)</td>
+                            <td><a href="@($"downloads?client={Uri.EscapeDataString(d.ClientIp)}")" style="text-decoration:none"><ClientCell Ip="@d.ClientIp" Name="@d.ClientName" Gateway="@_gateways.Contains(d.ClientIp)" /></a></td>
+                            <td><GameCell Content="d.Content" /></td>
+                            <td class="data">@Format.DayTime(d.StartUnix)</td>
+                            <td class="num data">
+                                @if (d.Active)
+                                {
+                                    <span class="dot-live" title="Still downloading"></span>
+                                }
+                                @Format.Duration(d.LastUnix - d.StartUnix)
+                            </td>
+                            <td><SplitBar Hit="d.HitBytes" Miss="d.MissBytes" /></td>
+                            <td class="num data">@Format.Bytes(d.HitBytes + d.MissBytes)</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+    @if (_page is { Total: > 0 })
+    {
+        <div class="pager">
+            <span>@(_skip + 1)–@Math.Min(_skip + PageSize, _page.Total) of @Format.Count(_page.Total)</span>
+            <span class="spacer"></span>
+            <button class="btn sm" disabled="@(_skip == 0)" @onclick="() => Go(-1)">Newer</button>
+            <button class="btn sm" disabled="@(_skip + PageSize >= _page.Total)" @onclick="() => Go(1)">Older</button>
+        </div>
+    }
+</section>
+@if (_error)
+{
+    <p class="error-text" role="alert"><Icon Name="triangle-alert" /> Could not load downloads. Check the server is running.</p>
+}
+
+@code {
+    private const int PageSize = 50;
+
+    [SupplyParameterFromQuery(Name = "client")] public string? Client { get; set; }
+    [SupplyParameterFromQuery(Name = "service")] public string? Service { get; set; }
+    [SupplyParameterFromQuery(Name = "q")] public string? Q { get; set; }
+    [SupplyParameterFromQuery(Name = "active")] public bool Active { get; set; }
+
+    private PagedResult<DownloadDto>? _page;
+    private HashSet<string> _gateways = [];
+    private int _skip;
+    private bool _error;
+    private CancellationTokenSource? _debounce;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Scope.Changed += Reload;
+        Live.DataChanged += Reload;
+        _gateways = (await Api.System())?.DockerGatewayIps.ToHashSet() ?? [];
+    }
+
+    protected override Task OnParametersSetAsync()
+    {
+        _skip = 0;
+        return LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        try
+        {
+            _page = await Api.Downloads(Client, Service, Q, Active && Scope.IsLive, _skip, PageSize);
+            _error = false;
+        }
+        catch (HttpRequestException)
+        {
+            _error = true;
+        }
+    }
+
+    private async Task OnFilterChanged()
+    {
+        // Debounce typing; keep the URL shareable.
+        _debounce?.Cancel();
+        _debounce = new CancellationTokenSource();
+        var token = _debounce.Token;
+        try { await Task.Delay(250, token); } catch (TaskCanceledException) { return; }
+        Nav.NavigateTo(Nav.GetUriWithQueryParameters(new Dictionary<string, object?>
+        {
+            ["q"] = string.IsNullOrWhiteSpace(Q) ? null : Q,
+            ["service"] = string.IsNullOrEmpty(Service) ? null : Service,
+            ["active"] = Active ? true : null,
+        }), replace: true);
+    }
+
+    private void ClearClient() => Nav.NavigateTo(Nav.GetUriWithQueryParameter("client", (string?)null));
+
+    private async Task Go(int dir)
+    {
+        _skip = Math.Max(0, _skip + dir * PageSize);
+        await LoadAsync();
+    }
+
+    private async void Reload()
+    {
+        await LoadAsync();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        Scope.Changed -= Reload;
+        Live.DataChanged -= Reload;
+        _debounce?.Cancel();
+    }
+}

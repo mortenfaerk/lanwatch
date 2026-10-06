@@ -1,0 +1,54 @@
+# Smoke tests for the LanWatch API. Run with the VS / Rider / VS Code REST client.
+# Start the server with LANWATCH_PASSWORD=testpw first.
+@host = http://localhost:5199
+
+### Not logged in -> 401
+GET {{host}}/api/overview
+
+### Log in (sets the lanwatch cookie)
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{ "password": "testpw" }
+
+### Session
+GET {{host}}/api/auth/me
+
+### Events (auto-detected from traffic gaps)
+GET {{host}}/api/events
+
+### Overview for the latest event (or ?event=2, or ?from=..&to=..)
+GET {{host}}/api/overview
+
+### Throughput time series
+GET {{host}}/api/timeseries?points=120
+
+### Downloads, newest first; filter with client=, service=, q=, active=true
+GET {{host}}/api/downloads?take=20
+
+### Clients with sparklines
+GET {{host}}/api/clients
+
+### Top games/content
+GET {{host}}/api/content?take=20
+
+### Errors: kinds, hosts, statuses, timeline, recent
+GET {{host}}/api/errors
+
+### HTTPS passthrough (SNI) hosts
+GET {{host}}/api/stream
+
+### Rename a client
+PUT {{host}}/api/clients/10.100.32.27/name
+Content-Type: application/json
+
+{ "name": "Table 4 - Morten" }
+
+### Exclude IPs from stats
+PUT {{host}}/api/settings
+Content-Type: application/json
+
+{ "excludedIps": [] }
+
+### System / ingest status
+GET {{host}}/api/system

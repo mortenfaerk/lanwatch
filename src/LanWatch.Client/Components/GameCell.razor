@@ -1,0 +1,24 @@
+<div class="game">
+    @if (Content.ArtUrl is not null && !_artFailed)
+    {
+        <img class="art" src="@Content.ArtUrl" alt="" loading="lazy" @onerror="() => _artFailed = true" />
+    }
+    else
+    {
+        <span class="art blank" aria-hidden="true"><Icon Name="package" /></span>
+    }
+    <div class="name">
+        <b title="@Content.Name">@Content.Name</b>
+        @if (ShowService)
+        {
+            <span class="svc" style="@Svc.Var(Content.Service)"><i></i>@Svc.Name(Content.Service)</span>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public ContentInfo Content { get; set; } = default!;
+    [Parameter] public bool ShowService { get; set; } = true;
+
+    private bool _artFailed;
+}

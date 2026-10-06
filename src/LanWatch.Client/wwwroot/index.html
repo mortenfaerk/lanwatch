@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LanWatch</title>
+    <meta name="description" content="Live monitoring for the LAN party cache and DNS." />
+    <base href="/" />
+    <script>
+        // Apply the saved theme before first paint to avoid a flash.
+        try {
+            var t = localStorage.getItem("lanwatch.theme");
+            if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t);
+        } catch (e) { }
+    </script>
+    <link rel="preload" href="fonts/archivo-var.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="fonts/jetbrains-mono-var.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="stylesheet" href="css/app.css" />
+    <link rel="stylesheet" href="LanWatch.Client.styles.css" />
+</head>
+
+<body>
+    <div id="app">
+        <div class="boot">LanWatch</div>
+    </div>
+
+    <div id="blazor-error-ui">
+        Something went wrong in LanWatch. Reloading usually fixes it.
+        <a href="." class="reload">Reload</a>
+        <span class="dismiss" role="button" aria-label="Dismiss">Dismiss</span>
+    </div>
+    <script src="js/lanwatch.js"></script>
+    <script src="_framework/blazor.webassembly.js"></script>
+</body>
+
+</html>

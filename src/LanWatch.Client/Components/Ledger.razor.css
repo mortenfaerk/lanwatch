@@ -1,0 +1,90 @@
+.ledger {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.ledger th {
+    padding: 10px var(--s-4) 8px;
+    text-align: left;
+    font-weight: 560;
+    font-size: var(--fs-13);
+    color: var(--ink-2);
+    border-bottom: 1px solid var(--rule);
+    white-space: nowrap;
+}
+
+.ledger th .key {
+    margin-right: 8px;
+    vertical-align: 1px;
+}
+
+.ledger td {
+    padding: 8px var(--s-4) 6px;
+    text-align: right;
+    border-bottom: 1px solid var(--rule);
+    white-space: nowrap;
+}
+
+.amount {
+    font-family: var(--font-data);
+    font-size: var(--fs-23);
+    font-weight: 500;
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums slashed-zero;
+}
+
+.unit {
+    display: inline-block;
+    width: 2.4em;
+    margin-left: 4px;
+    text-align: left;
+    font-family: var(--font-data);
+    font-size: var(--fs-12);
+    color: var(--ink-3);
+}
+
+/* Accounting total: a double rule above the sum. */
+.ledger tr.total th,
+.ledger tr.total td {
+    border-top: 3px double var(--frame);
+    border-bottom: 1px solid var(--frame);
+}
+
+.ledger tr.total th {
+    color: var(--ink);
+    font-weight: 700;
+}
+
+.ledger-foot {
+    display: grid;
+    gap: 12px;
+}
+
+.ledger-counts {
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    align-items: end;
+    gap: 8px;
+}
+
+.ledger-counts div {
+    display: grid;
+    gap: 3px;
+}
+
+.ledger-counts dt {
+    font-size: var(--fs-11);
+    font-weight: 650;
+    font-stretch: 75%;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+}
+
+.ledger-counts dd {
+    margin: 0;
+    font-family: var(--font-data);
+    font-size: var(--fs-16);
+    font-variant-numeric: tabular-nums slashed-zero;
+}

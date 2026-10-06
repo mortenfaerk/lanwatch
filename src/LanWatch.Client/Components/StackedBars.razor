@@ -1,0 +1,145 @@
+@* Stacked hit-over-miss bars on a shared time axis. Values are rates (bytes/s); the axis speaks bits/s.
+   Bars are drawn in a stretched SVG; axis text is HTML so it never distorts. *@
+@inject IJSRuntime JS
+
+@{
+    var n = Points.Count;
+    var top = NiceCeiling(ScaleBasis() * 8) / 8; // bytes/s at the top gridline
+    var ticks = new[] { top / 2, top };
+    var xLabels = XTickIndices(n);
+}
+<div class="chart bars" style="height:@(Height)px" @ref="_el"
+     @onmousemove="OnMove" @onmouseleave="() => _hover = null" role="img" aria-label="@Label">
+    <svg viewBox="0 0 @(Math.Max(1, n)) 100" preserveAspectRatio="none" style="height:@(Height - 18)px">
+        <g class="grid">
+            @foreach (var t in ticks)
+            {
+                if (top <= 0) break;
+                var y = 100 - t / top * 100;
+                <line x1="0" x2="@n" y1="@y" y2="@y" vector-effect="non-scaling-stroke" />
+            }
+        </g>
+        @if (_hover is int hi && hi < n)
+        {
+            <rect class="hover-band" x="@hi" y="0" width="1" height="100" />
+        }
+        @for (var i = 0; i < n; i++)
+        {
+            var p = Points[i];
+            if (top <= 0 || p.Hit + p.Miss <= 0) continue;
+            // Bars above the ceiling are clipped to it and capped with an ink tick; the tooltip keeps the true value.
+            var clipped = p.Hit + p.Miss > top;
+            var k = clipped ? top / (p.Hit + p.Miss) : 1;
+            var hitH = p.Hit * k / top * 100;
+            var missH = p.Miss * k / top * 100;
+            var gap = hitH > 0 && missH > 0 ? Math.Min(1.2, missH * 0.3) : 0;
+            if (hitH > 0)
+            {
+                <rect class="hit" x="@(i + Inset)" width="@(1 - 2 * Inset)" y="@(100 - hitH)" height="@hitH" />
+            }
+            if (missH > 0)
+            {
+                <rect class="miss" x="@(i + Inset)" width="@(1 - 2 * Inset)" y="@(100 - hitH - missH)" height="@(Math.Max(0, missH - gap))" />
+            }
+            if (clipped)
+            {
+                <rect class="cap" x="@(i - 0.1)" width="1.2" y="0" height="3" />
+            }
+        }
+        <line class="baseline" x1="0" x2="@n" y1="100" y2="100" vector-effect="non-scaling-stroke" />
+    </svg>
+
+    @if (top > 0)
+    {
+        @foreach (var t in ticks)
+        {
+            <span class="ytick" style="top:@YTop(t, top)">@Format.Rate(t)</span>
+        }
+    }
+    else
+    {
+        <span class="ytick idle">No traffic in this window</span>
+    }
+
+    <div class="xaxis">
+        @foreach (var i in xLabels)
+        {
+            <span style="left:@(Pct((i + 0.5) / n))">@XLabel(Points[i].T)</span>
+        }
+    </div>
+
+    @if (_hover is int h && h < n)
+    {
+        var p = Points[h];
+        var leftPct = (h + 0.5) / n;
+        <div class="tooltip" style="@(leftPct > 0.6 ? $"right:{Pct(1 - leftPct)}" : $"left:{Pct(leftPct)}"); top:4px">
+            <span class="label">@TooltipTime(p.T)</span>
+            <div class="row"><span class="key"><i class="h"></i>From cache</span><b>@Format.Rate(p.Hit)</b></div>
+            <div class="row"><span class="key"><i class="m"></i>From internet</span><b>@Format.Rate(p.Miss)</b></div>
+            @if (p.Errors > 0)
+            {
+                <div class="row"><span class="key"><Icon Name="triangle-alert" />Errors</span><b>@p.Errors</b></div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    public readonly record struct Bar(long T, double Hit, double Miss, long Errors = 0);
+
+    [Parameter, EditorRequired] public IReadOnlyList<Bar> Points { get; set; } = [];
+    [Parameter] public int Height { get; set; } = 160;
+    [Parameter] public Func<long, string> XLabel { get; set; } = Format.Time;
+    [Parameter] public Func<long, string> TooltipTime { get; set; } = Format.DayTime;
+    [Parameter] public string Label { get; set; } = "Throughput from cache and from internet";
+    [Parameter] public int XTicks { get; set; } = 6;
+
+    /// <summary>
+    /// Scale to the 95th percentile instead of the maximum. lancache logs a request when it completes, so one second
+    /// can carry a whole burst; a max-scaled axis would flatten everything else.
+    /// </summary>
+    [Parameter] public bool Robust { get; set; }
+
+    private const double Inset = 0.14;
+    private ElementReference _el;
+    private int? _hover;
+
+    private async Task OnMove(MouseEventArgs e)
+    {
+        if (Points.Count == 0) return;
+        var x = await JS.InvokeAsync<double>("lanwatch.relX", _el, e.ClientX);
+        _hover = Math.Clamp((int)(x * Points.Count), 0, Points.Count - 1);
+    }
+
+    private double ScaleBasis()
+    {
+        var totals = Points.Select(p => p.Hit + p.Miss).Where(v => v > 0).OrderBy(v => v).ToList();
+        if (totals.Count == 0) return 0;
+        if (!Robust || totals.Count < 10) return totals[^1];
+        var p95 = totals[(int)Math.Floor(0.95 * (totals.Count - 1))];
+        return Math.Min(totals[^1], p95 * 1.25);
+    }
+
+    private IEnumerable<int> XTickIndices(int n)
+    {
+        if (n == 0) yield break;
+        var count = Math.Min(XTicks, n);
+        for (var k = 0; k < count; k++)
+            yield return (int)Math.Round(k * (n - 1) / (double)Math.Max(1, count - 1));
+    }
+
+    private string YTop(double tick, double top) =>
+        Pct((1 - tick / top) * (Height - 18) / Height);
+
+    private static string Pct(double f) => (f * 100).ToString("0.###", System.Globalization.CultureInfo.InvariantCulture) + "%";
+
+    /// <summary>Rounds a bit rate up to 1/2/5 × 10^k so gridlines land on readable values.</summary>
+    private static double NiceCeiling(double bits)
+    {
+        if (bits <= 0) return 0;
+        var exp = Math.Pow(10, Math.Floor(Math.Log10(bits)));
+        foreach (var m in new[] { 1, 2, 2.5, 5, 10 })
+            if (m * exp >= bits) return m * exp;
+        return 10 * exp;
+    }
+}

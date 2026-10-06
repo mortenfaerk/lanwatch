@@ -1,0 +1,14 @@
+@for (var r = 0; r < Rows; r++)
+{
+    <tr aria-hidden="true">
+        @for (var c = 0; c < Columns; c++)
+        {
+            <td><span class="skeleton" style="width:@(c == 0 ? 70 : 40 + (r * 13 + c * 29) % 45)%"></span></td>
+        }
+    </tr>
+}
+
+@code {
+    [Parameter] public int Rows { get; set; } = 6;
+    [Parameter] public int Columns { get; set; } = 5;
+}

@@ -1,0 +1,123 @@
+@page "/games"
+@implements IDisposable
+@inject Api Api
+@inject ScopeState Scope
+@inject LiveConnection Live
+
+<PageTitle>Games · LanWatch</PageTitle>
+<SectionContent SectionName="title"><h1>Games</h1></SectionContent>
+
+<div class="toolbar">
+    <label class="field">
+        <span class="label">Service</span>
+        <select class="select" @bind="_service" @bind:after="LoadAsync">
+            <option value="">All services</option>
+            @foreach (var s in Svc.Order)
+            {
+                <option value="@s">@Svc.Name(s)</option>
+            }
+        </select>
+    </label>
+    @if (_items is { Count: > 0 })
+    {
+        var cached = _items.Sum(i => i.HitBytes);
+        var total = _items.Sum(i => i.HitBytes + i.MissBytes);
+        <p class="secondary" style="align-self:center;margin-top:18px">
+            @_items.Count titles · @Format.Bytes(total) moved · @Format.HitRatio(cached, total - cached) from cache
+        </p>
+    }
+</div>
+
+<section class="panel" aria-label="Games by traffic">
+    <div class="panel-body flush table-wrap">
+        <table class="manifest">
+            <thead>
+                <tr>
+                    <th>Game</th>
+                    <th class="num">Clients</th>
+                    <th class="num">Downloads</th>
+                    <th style="width:22%">Served from cache</th>
+                    <th class="num">From internet</th>
+                    <th class="num">Total</th>
+                    <th class="num">Last pulled</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (_items is null)
+                {
+                    <SkeletonRows Rows="12" Columns="7" />
+                }
+                else if (_items.Count == 0)
+                {
+                    <tr><td colspan="7"><div class="empty"><b>No games downloaded in this scope.</b><span>Pick another event or service.</span></div></td></tr>
+                }
+                else
+                {
+                    @foreach (var g in _items)
+                    {
+                        <tr>
+                            <td>
+                                @if (g.Content.StoreUrl is not null)
+                                {
+                                    <a href="@g.Content.StoreUrl" target="_blank" rel="noopener" style="text-decoration:none" title="Open store page"><GameCell Content="g.Content" /></a>
+                                }
+                                else
+                                {
+                                    <GameCell Content="g.Content" />
+                                }
+                            </td>
+                            <td class="num data">@g.Clients</td>
+                            <td class="num data">@g.Sessions</td>
+                            <td><SplitBar Hit="g.HitBytes" Miss="g.MissBytes" /></td>
+                            <td class="num data">@Format.Bytes(g.MissBytes)</td>
+                            <td class="num data">@Format.Bytes(g.HitBytes + g.MissBytes)</td>
+                            <td class="num data">@Format.DayTime(g.LastUnix)</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</section>
+@if (_error)
+{
+    <p class="error-text" role="alert"><Icon Name="triangle-alert" /> Could not load games. Check the server is running.</p>
+}
+
+@code {
+    private List<ContentTotalDto>? _items;
+    private string _service = "";
+    private bool _error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Scope.Changed += Reload;
+        Live.DataChanged += Reload;
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        try
+        {
+            _items = await Api.Content(_service, take: 200);
+            _error = false;
+        }
+        catch (HttpRequestException)
+        {
+            _error = true;
+        }
+    }
+
+    private async void Reload()
+    {
+        await LoadAsync();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        Scope.Changed -= Reload;
+        Live.DataChanged -= Reload;
+    }
+}

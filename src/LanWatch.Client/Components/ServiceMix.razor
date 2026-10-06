@@ -1,0 +1,34 @@
+@* Share of bytes per service: one segmented bar plus a labelled list (identity is never colour alone). *@
+@{
+    var total = Services.Sum(s => s.HitBytes + s.MissBytes);
+    var ordered = Services.Where(s => s.HitBytes + s.MissBytes > 0)
+        .OrderBy(s => Array.IndexOf(Svc.Order, s.Service) is var i && i < 0 ? 99 : i).ToList();
+}
+@if (total == 0)
+{
+    <p class="muted">No cache traffic in this scope yet.</p>
+}
+else
+{
+    <div class="mix-bar" role="img" aria-label="Share of traffic by service">
+        @foreach (var s in ordered)
+        {
+            var bytes = s.HitBytes + s.MissBytes;
+            <span style="@Svc.Var(s.Service); flex:@bytes 1 0" title="@Svc.Name(s.Service): @Format.Bytes(bytes)"></span>
+        }
+    </div>
+    <div class="mix-list">
+        @foreach (var s in ordered.OrderByDescending(s => s.HitBytes + s.MissBytes))
+        {
+            var bytes = s.HitBytes + s.MissBytes;
+            <span class="svc" style="@Svc.Var(s.Service)"><i></i></span>
+            <span>@Svc.Name(s.Service)</span>
+            <span class="data muted" title="Share of all traffic">@Format.Percent((double)bytes / total)</span>
+            <span class="data" title="@Format.HitRatio(s.HitBytes, s.MissBytes) served from cache">@Format.Bytes(bytes)</span>
+        }
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<ServiceTotal> Services { get; set; } = [];
+}

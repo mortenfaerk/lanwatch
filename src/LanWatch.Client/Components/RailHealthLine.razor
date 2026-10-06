@@ -1,0 +1,16 @@
+@{
+    var (css, word) = Probe.State switch
+    {
+        ProbeState.Ok => ("ok", "OK"),
+        ProbeState.Warn => ("warn", "Check"),
+        ProbeState.Fail => ("fail", "Failing"),
+        ProbeState.NotConfigured => ("off", "Not set up"),
+        _ => ("off", "Checking"),
+    };
+}
+<span class="rh-line @css"><i></i>@Name<b>@word</b></span>
+
+@code {
+    [Parameter, EditorRequired] public string Name { get; set; } = "";
+    [Parameter, EditorRequired] public ProbeResult Probe { get; set; } = default!;
+}

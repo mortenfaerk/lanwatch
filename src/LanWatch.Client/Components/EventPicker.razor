@@ -1,0 +1,29 @@
+@implements IDisposable
+@inject ScopeState Scope
+
+<label class="event-picker">
+    <span class="sr-only">Event</span>
+    <Icon Name="calendar-range" />
+    <select class="select" value="@(Scope.SelectedId?.ToString() ?? "")" @onchange="OnChange" aria-label="Event shown on every page">
+        @if (Scope.Events.Count == 0)
+        {
+            <option value="">Last 24 hours</option>
+        }
+        @foreach (var e in Scope.Events)
+        {
+            var isLatest = e.Id == Scope.Events[0].Id;
+            <option value="@(isLatest ? "" : e.Id.ToString())">@e.Name · @Format.Day(e.StartUnix)@(isLatest && Scope.IsLive ? " (now)" : "")</option>
+        }
+    </select>
+</label>
+
+@code {
+    protected override void OnInitialized() => Scope.Changed += Refresh;
+
+    private void OnChange(ChangeEventArgs e) =>
+        Scope.Select(int.TryParse(e.Value?.ToString(), out var id) ? id : null);
+
+    private void Refresh() => InvokeAsync(StateHasChanged);
+
+    public void Dispose() => Scope.Changed -= Refresh;
+}

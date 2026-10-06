@@ -1,0 +1,33 @@
+@{
+    var total = Hit + Miss;
+    var label = total == 0 ? "No data" : $"{Format.Bytes(Hit)} from cache, {Format.Bytes(Miss)} from internet";
+}
+<div class="split-cell" title="@label">
+    @if (total == 0)
+    {
+        <div class="split empty" role="img" aria-label="@label"></div>
+    }
+    else
+    {
+        <div class="split" role="img" aria-label="@label">
+            @if (Hit > 0)
+            {
+                <span class="h" style="flex: @Hit 1 0"></span>
+            }
+            @if (Miss > 0)
+            {
+                <span class="m" style="flex: @Miss 1 0"></span>
+            }
+        </div>
+    }
+    @if (ShowNumbers)
+    {
+        <div class="data"><span>@Format.HitRatio(Hit, Miss) cached</span><span>@Format.Bytes(Miss) in</span></div>
+    }
+</div>
+
+@code {
+    [Parameter] public long Hit { get; set; }
+    [Parameter] public long Miss { get; set; }
+    [Parameter] public bool ShowNumbers { get; set; } = true;
+}

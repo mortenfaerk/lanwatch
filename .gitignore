@@ -1,0 +1,14 @@
+bin/
+obj/
+.vs/
+.vscode/
+*.user
+*.db
+*.db-shm
+*.db-wal
+/data/
+/logs/
+/lanwatch-data/
+.impeccable/config.local.json
+.impeccable/review/
+/prod-dump/

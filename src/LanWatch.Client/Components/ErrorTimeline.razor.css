@@ -1,0 +1,25 @@
+.ymax {
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding-right: 6px;
+    background: var(--paper);
+    font-family: var(--font-data);
+    font-size: 10.5px;
+    color: var(--ink-3);
+}
+
+.xaxis {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 14px;
+    font-family: var(--font-data);
+    font-size: 10.5px;
+    color: var(--ink-3);
+}
+
+.xaxis span {
+    position: absolute;
+}

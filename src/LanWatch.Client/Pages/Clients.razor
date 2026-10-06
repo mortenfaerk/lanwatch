@@ -1,0 +1,172 @@
+@page "/clients"
+@implements IDisposable
+@inject Api Api
+@inject ScopeState Scope
+@inject LiveConnection Live
+
+<PageTitle>Clients · LanWatch</PageTitle>
+<SectionContent SectionName="title"><h1>Clients</h1></SectionContent>
+
+@if (_clients?.Any(c => c.IsGateway) == true)
+{
+    <div class="banner" role="note">
+        <Icon Name="eye-off" />
+        <span>Some traffic reached the cache through the Docker gateway, so its client IP is not in the log. It is grouped under <b>Hidden behind Docker</b>. Publishing ports without Docker's userland proxy keeps the real IPs.</span>
+    </div>
+}
+
+<section class="panel" aria-label="Clients">
+    <div class="panel-body flush table-wrap">
+        <table class="manifest">
+            <thead>
+                <tr>
+                    <th aria-sort="@AriaSort("name")">
+                        <button @onclick='() => SortBy("name")'>Client <SortMark Active="@(_sort == "name")" Descending="_desc" /></button>
+                    </th>
+                    <th>Name</th>
+                    <th>Activity over event</th>
+                    <th class="num" aria-sort="@AriaSort("downloads")"><button @onclick='() => SortBy("downloads")'>Downloads <SortMark Active="@(_sort == "downloads")" Descending="_desc" /></button></th>
+                    <th style="width:18%">Served from cache</th>
+                    <th class="num" aria-sort="@AriaSort("bytes")"><button @onclick='() => SortBy("bytes")'>Total <SortMark Active="@(_sort == "bytes")" Descending="_desc" /></button></th>
+                    <th class="num" aria-sort="@AriaSort("last")"><button @onclick='() => SortBy("last")'>Last seen <SortMark Active="@(_sort == "last")" Descending="_desc" /></button></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (_clients is null)
+                {
+                    <SkeletonRows Rows="10" Columns="7" />
+                }
+                else if (_clients.Count == 0)
+                {
+                    <tr><td colspan="7"><div class="empty"><b>No clients in this event yet.</b><span>Clients appear as soon as they download through the cache.</span></div></td></tr>
+                }
+                else
+                {
+                    var max = _clients.SelectMany(c => c.Sparkline).DefaultIfEmpty(1).Max();
+                    @foreach (var c in Sorted)
+                    {
+                        <tr @key="c.Ip">
+                            <td><a href="@($"downloads?client={Uri.EscapeDataString(c.Ip)}")" class="data" title="Show this client's downloads">@c.Ip</a></td>
+                            <td>
+                                @if (c.IsGateway)
+                                {
+                                    <span class="tag warn" title="Real client IP lost at the Docker gateway"><Icon Name="eye-off" /> Hidden behind Docker</span>
+                                }
+                                else if (_editing == c.Ip)
+                                {
+                                    <form class="rename" @onsubmit="() => SaveName(c)" @onsubmit:preventDefault>
+                                        <input class="input" @bind="_draft" maxlength="64" placeholder="e.g. Table 4 – Sara" aria-label="Name for @c.Ip" autofocus />
+                                        <button class="btn sm primary" type="submit"><Icon Name="check" /> Save</button>
+                                        <button class="btn sm ghost" type="button" @onclick="() => _editing = null">Cancel</button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <button class="btn sm ghost name-btn" @onclick="() => Edit(c)" title="Rename">
+                                        @if (string.IsNullOrEmpty(c.Name))
+                                        {
+                                            <span class="muted">Add name</span>
+                                        }
+                                        else
+                                        {
+                                            <b>@c.Name</b>
+                                        }
+                                        <Icon Name="pencil" />
+                                    </button>
+                                }
+                            </td>
+                            <td><Sparkline Values="c.Sparkline" Max="max" Label="@($"Traffic for {c.Ip} across the event")" /></td>
+                            <td class="num data">@c.Downloads</td>
+                            <td><SplitBar Hit="c.HitBytes" Miss="c.MissBytes" /></td>
+                            <td class="num data">@Format.Bytes(c.HitBytes + c.MissBytes)</td>
+                            <td class="num data">@Format.DayTime(c.LastSeenUnix)</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</section>
+@if (_error is not null)
+{
+    <p class="error-text" role="alert"><Icon Name="triangle-alert" /> @_error</p>
+}
+
+@code {
+    private List<ClientDto>? _clients;
+    private string _sort = "bytes";
+    private bool _desc = true;
+    private string? _editing;
+    private string? _draft;
+    private string? _error;
+
+    private IEnumerable<ClientDto> Sorted => (_sort, _desc) switch
+    {
+        ("name", false) => _clients!.OrderBy(c => c.Name ?? "￿").ThenBy(c => c.Ip),
+        ("name", true) => _clients!.OrderByDescending(c => c.Name ?? "").ThenBy(c => c.Ip),
+        ("downloads", var d) => d ? _clients!.OrderByDescending(c => c.Downloads) : _clients!.OrderBy(c => c.Downloads),
+        ("last", var d) => d ? _clients!.OrderByDescending(c => c.LastSeenUnix) : _clients!.OrderBy(c => c.LastSeenUnix),
+        (_, var d) => d ? _clients!.OrderByDescending(c => c.HitBytes + c.MissBytes) : _clients!.OrderBy(c => c.HitBytes + c.MissBytes),
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        Scope.Changed += Reload;
+        Live.DataChanged += Reload;
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        try
+        {
+            _clients = await Api.Clients();
+            _error = null;
+        }
+        catch (HttpRequestException)
+        {
+            _error = "Could not load clients. Check the server is running.";
+        }
+    }
+
+    private void SortBy(string key)
+    {
+        _desc = _sort == key ? !_desc : key != "name";
+        _sort = key;
+    }
+
+    private string AriaSort(string key) => _sort != key ? "none" : _desc ? "descending" : "ascending";
+
+private void Edit(ClientDto c)
+    {
+        _editing = c.Ip;
+        _draft = c.Name;
+    }
+
+    private async Task SaveName(ClientDto c)
+    {
+        try
+        {
+            await Api.RenameClient(c.Ip, _draft);
+            _editing = null;
+            await LoadAsync();
+        }
+        catch (Exception ex) when (ex is ApiException or HttpRequestException)
+        {
+            _error = $"Could not save the name: {ex.Message}";
+        }
+    }
+
+    private async void Reload()
+    {
+        if (_editing is not null) return; // don't yank the table while someone types
+        await LoadAsync();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        Scope.Changed -= Reload;
+        Live.DataChanged -= Reload;
+    }
+}

@@ -1,0 +1,125 @@
+@* The exceptions band: open error groups as stamped dockets, signed off by the crew. *@
+@implements IDisposable
+@inject ExceptionsState State
+@inject ScopeState Scope
+
+@{
+    var data = State.Current;
+    var items = data?.Items ?? [];
+    var open = items.Where(i => i.Open).ToList();
+    var shown = Scope.IsLive ? open.Concat(items.Where(i => !i.Open)).Take(Max).ToList() : items.Take(Max).ToList();
+}
+
+@if (data is null && State.Failed)
+{
+    <div class="banner bad" role="alert"><Icon Name="triangle-alert" /> Could not load exceptions. Is the LanWatch server reachable?</div>
+}
+else if (data is null)
+{
+    <div class="all-clear"><span class="skeleton" style="width:240px"></span></div>
+}
+else if (shown.Count == 0)
+{
+    <div class="all-clear" role="status">
+        <Icon Name="circle-check" />
+        @if (data.Live)
+        {
+            <span><b>No exceptions.</b> Nothing has failed in the last 15 minutes.</span>
+            <span class="meta">Checked @Format.Ago(DateTimeOffset.UtcNow.ToUnixTimeSeconds())</span>
+        }
+        else
+        {
+            <span><b>No exceptions</b> were logged during this event.</span>
+        }
+    </div>
+}
+else
+{
+    <div class="exceptions" role="list" aria-label="Exceptions">
+        @foreach (var item in shown)
+        {
+            var key = ExceptionsState.Key(item);
+            var signed = !item.Open;
+            <article class="docket @(signed ? "signed" : "")" role="listitem" @key="key">
+                <div style="min-width:0">
+                    <h3>@ErrorKinds.Title(item.Kind)</h3>
+                    <div class="where">@(string.IsNullOrEmpty(item.Domain) ? "no host in log" : item.Domain)@(item.Hosts > 1 ? $" · {item.Hosts} hosts" : "")</div>
+                </div>
+                @if (!data.Live)
+                {
+                    <span class="stamp signed">Logged <span class="count">×@item.Count</span></span>
+                }
+                else if (signed)
+                {
+                    <span class="stamp signed" title="Signed off @Format.TimeSec(item.SignedOffUnix ?? 0)">Signed @Format.Time(item.SignedOffUnix ?? 0)</span>
+                }
+                else
+                {
+                    <span class="stamp @(State.Fresh.Contains(key) ? "landing" : "")" role="status">Open <span class="count">×@item.Count</span></span>
+                }
+                <p class="advice">@ErrorKinds.Advice(item.Kind)</p>
+                <div class="foot">
+                    <span class="data">@Format.TimeSec(item.FirstUnix)–@Format.TimeSec(item.LastUnix)</span>
+                    @if (item.Clients > 0)
+                    {
+                        <span>@item.Clients @(item.Clients == 1 ? "client" : "clients")</span>
+                    }
+                    @if (data.Live && !signed)
+                    {
+                        <button class="btn sm" disabled="@(_busy.Contains(key))" @onclick="() => SignOffAsync(item)">
+                            <Icon Name="stamp" /> @(_busy.Contains(key) ? "Signing…" : "Sign off")
+                        </button>
+                    }
+                </div>
+            </article>
+        }
+    </div>
+    @if (items.Count > shown.Count)
+    {
+        <p class="muted" style="font-size:var(--fs-12)">@(items.Count - shown.Count) more on the <a href="errors">Errors</a> page.</p>
+    }
+}
+@if (_error is not null)
+{
+    <p class="error-text" role="alert"><Icon Name="triangle-alert" /> @_error</p>
+}
+
+@code {
+    [Parameter] public int Max { get; set; } = 6;
+
+    private readonly HashSet<string> _busy = [];
+    private string? _error;
+
+    protected override void OnInitialized()
+    {
+        State.Changed += Refresh;
+        Scope.Changed += Refresh;
+    }
+
+    private async Task SignOffAsync(ExceptionDto item)
+    {
+        var key = ExceptionsState.Key(item);
+        _busy.Add(key);
+        _error = null;
+        try
+        {
+            await State.SignOffAsync(item);
+        }
+        catch (Exception ex) when (ex is ApiException or HttpRequestException)
+        {
+            _error = $"Could not sign off: {ex.Message}";
+        }
+        finally
+        {
+            _busy.Remove(key);
+        }
+    }
+
+    private void Refresh() => InvokeAsync(StateHasChanged);
+
+    public void Dispose()
+    {
+        State.Changed -= Refresh;
+        Scope.Changed -= Refresh;
+    }
+}

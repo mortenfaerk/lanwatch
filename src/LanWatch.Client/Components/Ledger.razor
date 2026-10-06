@@ -1,0 +1,69 @@
+@* The event ledger: what the cache delivered, set as ruled ledger lines with a totals rule. *@
+<section class="panel" aria-labelledby="ledger-h">
+    <header class="panel-head">
+        <h2 id="ledger-h">Event ledger</h2>
+        @if (Overview is not null)
+        {
+            <div class="meta">@Overview.Scope.Label</div>
+        }
+    </header>
+    @if (Overview is null && Failed)
+    {
+        <div class="panel-body"><p class="error-text"><Icon Name="triangle-alert" /> Could not load totals. Check the server is running.</p></div>
+    }
+    else if (Overview is null)
+    {
+        <div class="panel-body" style="display:grid;gap:10px">
+            <span class="skeleton"></span><span class="skeleton" style="width:60%"></span><span class="skeleton" style="width:80%"></span>
+        </div>
+    }
+    else
+    {
+        var o = Overview;
+        var (hv, hu) = Format.BytesParts(o.HitBytes);
+        var (mv, mu) = Format.BytesParts(o.MissBytes);
+        var (tv, tu) = Format.BytesParts(o.HitBytes + o.MissBytes);
+        <table class="ledger">
+            <tbody>
+                <tr>
+                    <th scope="row"><span class="key"><i class="h"></i></span>Served from cache</th>
+                    <td><span class="amount">@hv</span><span class="unit">@hu</span></td>
+                </tr>
+                <tr>
+                    <th scope="row"><span class="key"><i class="m"></i></span>Pulled from internet</th>
+                    <td><span class="amount">@mv</span><span class="unit">@mu</span></td>
+                </tr>
+                <tr class="total">
+                    <th scope="row">Delivered to clients</th>
+                    <td><span class="amount">@tv</span><span class="unit">@tu</span></td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="panel-body ledger-foot">
+            <SplitBar Hit="o.HitBytes" Miss="o.MissBytes" ShowNumbers="false" />
+            <dl class="ledger-counts">
+                <div><dt>Hit ratio</dt><dd>@Format.HitRatio(o.HitBytes, o.MissBytes)</dd></div>
+                <div><dt>Clients</dt><dd>@o.Clients</dd></div>
+                <div><dt>Downloads</dt><dd>@Format.Count(o.Downloads)</dd></div>
+                <div>
+                    <dt>Failed</dt>
+                    <dd>
+                        @if (o.ErrorRequests > 0)
+                        {
+                            <a href="errors">@Format.Count(o.ErrorRequests)</a>
+                        }
+                        else
+                        {
+                            <text>0</text>
+                        }
+                    </dd>
+                </div>
+            </dl>
+        </div>
+    }
+</section>
+
+@code {
+    [Parameter] public OverviewDto? Overview { get; set; }
+    [Parameter] public bool Failed { get; set; }
+}

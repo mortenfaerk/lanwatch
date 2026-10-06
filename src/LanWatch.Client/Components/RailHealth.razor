@@ -1,0 +1,31 @@
+@* Compact health list for the rail foot; full detail lives on the DNS page. *@
+@implements IDisposable
+@inject LiveConnection Live
+
+@if (Live.Last?.Health is { } h)
+{
+    <a class="rail-health" href="dns" title="Health checks">
+        <span class="label">Checks</span>
+        <RailHealthLine Name="Cache" Probe="h.Heartbeat" />
+        <RailHealthLine Name="lancache-dns" Probe="h.LancacheDns" />
+        <RailHealthLine Name="AdGuard" Probe="h.AdGuard" />
+        <RailHealthLine Name="Disk" Probe="h.Disk" />
+    </a>
+}
+
+@code {
+    protected override void OnInitialized() => Live.Tick += OnTick;
+
+    private ProbeState[]? _last;
+
+    private void OnTick(LiveTick t)
+    {
+        var states = t.Health is { } h ? new[] { h.Heartbeat.State, h.LancacheDns.State, h.AdGuard.State, h.Disk.State } : null;
+        if (_last is not null && states is not null && states.SequenceEqual(_last)) return;
+        _last = states;
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose() => Live.Tick -= OnTick;
+
+}

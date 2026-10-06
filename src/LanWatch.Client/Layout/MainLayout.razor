@@ -1,0 +1,98 @@
+@inherits LayoutComponentBase
+@implements IDisposable
+@inject Session Session
+@inject Api Api
+@inject ScopeState Scope
+@inject LiveConnection Live
+@inject ExceptionsState Exceptions
+@inject IJSRuntime JS
+
+@if (!Session.Checked)
+{
+    <div class="boot">LanWatch</div>
+}
+else if (!Session.Authenticated)
+{
+    <Login />
+}
+else
+{
+    <div class="shell">
+        <nav class="rail" aria-label="Main">
+            <a class="wordmark" href="">
+                <b>LanWatch</b><span>cache &amp; DNS</span>
+            </a>
+            <div class="nav">
+                <NavLink href="" Match="NavLinkMatch.All"><Icon Name="layout-dashboard" /><span class="txt">Overview</span></NavLink>
+                <NavLink href="downloads"><Icon Name="arrow-down-to-line" /><span class="txt">Downloads</span></NavLink>
+                <NavLink href="clients"><Icon Name="monitor" /><span class="txt">Clients</span></NavLink>
+                <NavLink href="games"><Icon Name="gamepad-2" /><span class="txt">Games</span></NavLink>
+                <NavLink href="errors">
+                    <Icon Name="triangle-alert" /><span class="txt">Errors</span>
+                    @if (Scope.IsLive && Exceptions.OpenCount > 0)
+                    {
+                        <span class="count" aria-label="@($"{Exceptions.OpenCount} open exceptions")">@Exceptions.OpenCount</span>
+                    }
+                </NavLink>
+                <NavLink href="dns"><Icon Name="globe" /><span class="txt">DNS</span></NavLink>
+                <div class="nav-sep"></div>
+                <NavLink href="events"><Icon Name="calendar-range" /><span class="txt">Events</span></NavLink>
+                <NavLink href="settings"><Icon Name="settings" /><span class="txt">Settings</span></NavLink>
+            </div>
+            <div class="rail-foot">
+                <RailHealth />
+                <IngestState />
+                <button class="btn sm on-kraft" @onclick="LogoutAsync"><Icon Name="log-out" /> Sign out</button>
+            </div>
+        </nav>
+
+        <div class="main">
+            <header class="topbar">
+                <SectionOutlet SectionName="title" />
+                <div class="spacer"></div>
+                <SectionOutlet SectionName="actions" />
+                <EventPicker />
+                <LiveBadge />
+            </header>
+            <main class="content">
+                @Body
+            </main>
+        </div>
+    </div>
+}
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        Session.Changed += OnSessionChanged;
+        Scope.Changed += OnChanged;
+        Exceptions.Changed += OnChanged;
+        await Session.CheckAsync();
+    }
+
+    private async void OnSessionChanged()
+    {
+        if (Session.Authenticated)
+        {
+            Scope.SetEvents(await Api.Events() ?? []);
+            await Live.StartAsync();
+            await Exceptions.RefreshAsync();
+        }
+        else
+        {
+            await Live.StopAsync();
+        }
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void OnChanged() => InvokeAsync(StateHasChanged);
+
+    private Task LogoutAsync() => Session.LogoutAsync();
+
+    public void Dispose()
+    {
+        Session.Changed -= OnSessionChanged;
+        Scope.Changed -= OnChanged;
+        Exceptions.Changed -= OnChanged;
+    }
+}

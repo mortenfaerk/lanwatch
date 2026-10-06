@@ -1,0 +1,13 @@
+.sparkline {
+    display: block;
+    overflow: visible;
+}
+
+.sparkline rect {
+    fill: var(--ink-2);
+}
+
+.sparkline .base {
+    stroke: var(--rule);
+    stroke-width: 1;
+}

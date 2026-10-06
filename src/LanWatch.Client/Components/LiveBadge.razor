@@ -1,0 +1,46 @@
+@implements IDisposable
+@inject LiveConnection Live
+@inject ScopeState Scope
+
+@if (!Scope.IsLive)
+{
+    <span class="live off" title="You are looking at a past event"><i></i>Archive</span>
+}
+else
+{
+    var (css, text, title) = Live.Status switch
+    {
+        LiveStatus.Connected when Live.Last?.CaughtUp == false => ("live warn", "Importing", "Reading log history; numbers are still filling in"),
+        LiveStatus.Connected => ("live on", "Live", "Receiving updates every 2 seconds"),
+        LiveStatus.Reconnecting or LiveStatus.Connecting => ("live warn", "Reconnecting", "Lost the live feed; retrying"),
+        _ => ("live off", "Offline", "No live feed; data may be stale"),
+    };
+    <span class="@css" title="@title" role="status"><i></i>@text</span>
+}
+
+@code {
+    protected override void OnInitialized()
+    {
+        Live.StatusChanged += Refresh;
+        Live.Tick += OnTick;
+        Scope.Changed += Refresh;
+    }
+
+    private bool? _caughtUp;
+
+    private void OnTick(LiveTick t)
+    {
+        if (_caughtUp == t.CaughtUp) return;
+        _caughtUp = t.CaughtUp;
+        Refresh();
+    }
+
+    private void Refresh() => InvokeAsync(StateHasChanged);
+
+    public void Dispose()
+    {
+        Live.StatusChanged -= Refresh;
+        Live.Tick -= OnTick;
+        Scope.Changed -= Refresh;
+    }
+}

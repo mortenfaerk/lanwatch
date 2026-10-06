@@ -1,0 +1,23 @@
+@* Bar sparkline. Pass the same Max to every row so rows compare on one scale. *@
+@{
+    const double h = 22;
+    var n = Values.Count;
+    var w = Math.Max(1, n) * 4.0;
+    var max = Math.Max(1, Max ?? (n == 0 ? 1 : Values.Max()));
+}
+<svg class="sparkline" viewBox="0 0 @w @h" width="@(w)" height="@h" role="img" aria-label="@Label" preserveAspectRatio="none">
+    <line x1="0" x2="@w" y1="@(h - 0.5)" y2="@(h - 0.5)" class="base" />
+    @for (var i = 0; i < n; i++)
+    {
+        var v = Values[i];
+        if (v <= 0) continue;
+        var bh = Math.Max(1.5, v / (double)max * (h - 1));
+        <rect x="@(i * 4 + 0.5)" y="@(h - 1 - bh)" width="3" height="@bh" rx="0.75" />
+    }
+</svg>
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<long> Values { get; set; } = [];
+    [Parameter] public long? Max { get; set; }
+    [Parameter] public string Label { get; set; } = "Traffic over the event";
+}

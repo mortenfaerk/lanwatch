@@ -1,0 +1,62 @@
+@* Errors per time bucket, stacked by kind, with a per-bucket tooltip. *@
+@inject IJSRuntime JS
+
+@{
+    var n = Buckets.Count;
+    var max = n == 0 ? 1 : Math.Max(1, Buckets.Max(b => b.ByKind.Values.Sum()));
+}
+<div class="chart" style="height:180px" @ref="_el" @onmousemove="OnMove" @onmouseleave="() => _hover = null"
+     role="img" aria-label="Errors over time by kind">
+    <svg viewBox="0 0 @(Math.Max(1, n)) 100" preserveAspectRatio="none" style="height:162px">
+        <g class="grid"><line x1="0" x2="@n" y1="50" y2="50" vector-effect="non-scaling-stroke" /></g>
+        @for (var i = 0; i < n; i++)
+        {
+            double y = 100;
+            foreach (var k in Kinds)
+            {
+                if (!Buckets[i].ByKind.TryGetValue(k, out var c) || c == 0) continue;
+                var h = c / (double)max * 100;
+                y -= h;
+                <rect x="@(i + 0.12)" width="0.76" y="@y" height="@(Math.Max(0, h - 0.6))" style="fill:@ColorOf(k)" />
+            }
+        }
+        <line class="baseline" x1="0" x2="@n" y1="100" y2="100" vector-effect="non-scaling-stroke" />
+    </svg>
+    <span class="ymax">@max</span>
+    @if (n > 0)
+    {
+        <div class="xaxis">
+            <span style="left:0">@Format.DayTime(Buckets[0].T)</span>
+            <span style="right:0">@Format.DayTime(Buckets[^1].T + BucketSeconds)</span>
+        </div>
+    }
+    @if (_hover is int hi && hi < n)
+    {
+        var b = Buckets[hi];
+        var pct = (hi + 0.5) / n;
+        <div class="tooltip" style="@(pct > 0.6 ? $"right:{(1 - pct) * 100:0.#}%" : $"left:{pct * 100:0.#}%"); top:4px">
+            <span class="label">@Format.DayTime(b.T) · @Format.Duration(BucketSeconds)</span>
+            @foreach (var k in Kinds.Where(b.ByKind.ContainsKey))
+            {
+                <div class="row"><span class="key"><i style="background:@ColorOf(k)"></i>@ErrorKinds.Title(k)</span><b>@b.ByKind[k]</b></div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<ErrorBucket> Buckets { get; set; } = [];
+    [Parameter] public long BucketSeconds { get; set; }
+    [Parameter, EditorRequired] public IReadOnlyList<string> Kinds { get; set; } = [];
+    [Parameter, EditorRequired] public Func<string, string> ColorOf { get; set; } = _ => "var(--ink-3)";
+
+    private ElementReference _el;
+    private int? _hover;
+
+    private async Task OnMove(MouseEventArgs e)
+    {
+        if (Buckets.Count == 0) return;
+        var x = await JS.InvokeAsync<double>("lanwatch.relX", _el, e.ClientX);
+        _hover = Math.Clamp((int)(x * Buckets.Count), 0, Buckets.Count - 1);
+    }
+}

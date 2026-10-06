@@ -1,0 +1,19 @@
+@* One health check as a manifest form field. *@
+<div>
+    <span class="label">@Title</span>
+    <ProbeTag State="Probe.State" />
+    <span style="font-size:var(--fs-13)">@Probe.Summary</span>
+    @if (Probe.Detail is not null && Probe.State is ProbeState.Fail or ProbeState.Warn)
+    {
+        <span class="secondary data" style="font-size:var(--fs-12)">@Probe.Detail</span>
+    }
+    @if (Probe.CheckedUnix > 0)
+    {
+        <span class="muted" style="font-size:var(--fs-11)">Checked @Format.TimeSec(Probe.CheckedUnix)@(Probe.LatencyMs is { } ms ? $" · {ms:0} ms" : "")</span>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Title { get; set; } = "";
+    [Parameter, EditorRequired] public ProbeResult Probe { get; set; } = default!;
+}

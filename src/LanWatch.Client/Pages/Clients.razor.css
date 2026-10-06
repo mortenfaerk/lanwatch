@@ -1,0 +1,32 @@
+.rename {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.rename .input {
+    height: 26px;
+    width: 180px;
+}
+
+.name-btn {
+    max-width: 220px;
+}
+
+.name-btn b {
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.name-btn ::deep .icon {
+    width: 13px;
+    height: 13px;
+    opacity: 0;
+    transition: opacity 150ms;
+}
+
+.name-btn:hover ::deep .icon,
+.name-btn:focus-visible ::deep .icon {
+    opacity: 0.7;
+}

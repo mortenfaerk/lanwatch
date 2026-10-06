@@ -1,0 +1,211 @@
+@page "/dns"
+@implements IDisposable
+@inject Api Api
+@inject LiveConnection Live
+
+<PageTitle>DNS · LanWatch</PageTitle>
+<SectionContent SectionName="title"><h1>DNS &amp; health</h1></SectionContent>
+
+<section class="panel" aria-labelledby="checks-h">
+    <header class="panel-head"><h2 id="checks-h">Checks</h2><div class="meta">every 30 s</div></header>
+    @if (_health is null)
+    {
+        <div class="panel-body"><span class="skeleton"></span></div>
+    }
+    else
+    {
+        <div class="fields cols-4">
+            <Check Title="Cache heartbeat" Probe="_health.Heartbeat" />
+            <Check Title="lancache-dns" Probe="_health.LancacheDns" />
+            <Check Title="AdGuard Home" Probe="_health.AdGuard" />
+            <div>
+                <span class="label">Cache disk</span>
+                <ProbeTag State="_health.Disk.State" />
+                @if (_health.CacheDisk is { } d)
+                {
+                    var used = d.TotalBytes - d.FreeBytes;
+                    <SplitBar Hit="used" Miss="d.FreeBytes" ShowNumbers="false" />
+                    <span class="secondary" style="font-size:var(--fs-12)">@Format.Bytes(used) used of @Format.Bytes(d.TotalBytes) · @Format.Bytes(d.FreeBytes) free</span>
+                }
+                else
+                {
+                    <span class="secondary" style="font-size:var(--fs-12)">@_health.Disk.Summary</span>
+                }
+            </div>
+        </div>
+    }
+</section>
+
+@if (_adguard is null)
+{
+    <section class="panel"><div class="panel-body"><span class="skeleton"></span></div></section>
+}
+else if (!_adguard.Configured)
+{
+    <section class="panel" aria-labelledby="dns-h">
+        <header class="panel-head"><h2 id="dns-h">AdGuard Home</h2><span class="tag">Not connected</span></header>
+        <div class="empty">
+            <b>LanWatch is not reading AdGuard yet.</b>
+            <span>
+                lancache-dns forwards every name it does not own to AdGuard (UPSTREAM_DNS), and the cache resolves CDN hosts the same way.
+                When AdGuard is slow or down, the cache logs "could not be resolved" and downloads stall.
+            </span>
+            <span>
+                Set <span class="data">ADGUARD_URL</span>, <span class="data">ADGUARD_USER</span> and <span class="data">ADGUARD_PASSWORD</span> on the LanWatch container
+                to see AdGuard's query rate, upstream latency, and clients that ask AdGuard for cache domains directly, which means they are bypassing the cache.
+            </span>
+        </div>
+    </section>
+}
+else
+{
+    @if (!_adguard.Reachable)
+    {
+        <div class="banner bad" role="alert"><Icon Name="triangle-alert" /> AdGuard is not answering: @_adguard.Error</div>
+    }
+
+    <section class="panel" aria-labelledby="bypass-h">
+        <header class="panel-head">
+            <h2 id="bypass-h">Clients bypassing the cache</h2>
+            <div class="meta">game CDN lookups sent to AdGuard directly, last 15 min</div>
+        </header>
+        @if (_adguard.Bypass.Count == 0)
+        {
+            <div class="all-clear" style="border:0;border-radius:0">
+                <Icon Name="circle-check" />
+                <span><b>Every client resolves game CDNs through lancache-dns.</b> None asked AdGuard for a cache domain in the last 15 minutes.</span>
+            </div>
+        }
+        else
+        {
+            <div class="panel-body flush table-wrap">
+                <table class="manifest">
+                    <thead><tr><th>Client</th><th>Asked AdGuard for</th><th class="num">Lookups</th><th class="num">Last</th></tr></thead>
+                    <tbody>
+                        @foreach (var b in _adguard.Bypass)
+                        {
+                            <tr>
+                                <td><ClientCell Ip="@b.ClientIp" Name="@b.ClientName" /></td>
+                                <td class="data">@string.Join(", ", b.Domains)</td>
+                                <td class="num data">@b.Queries</td>
+                                <td class="num data">@Format.TimeSec(b.LastUnix)</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <p class="panel-body secondary" style="font-size:var(--fs-12);border-top:1px solid var(--rule)">@ErrorKinds.Advice("DnsBypass")</p>
+        }
+    </section>
+
+    <div class="grid-12">
+        <section class="panel span-4" aria-labelledby="ag-h">
+            <header class="panel-head">
+                <h2 id="ag-h">AdGuard</h2>
+                <div class="meta">@(_adguard.Version ?? "") · last 24 @(_adguard.TimeUnits)</div>
+            </header>
+            <dl class="fields cols-2" style="margin:0">
+                <div><dt class="label">Queries</dt><dd class="figure" style="margin:0">@Format.Count(_adguard.Queries)</dd></div>
+                <div><dt class="label">Blocked</dt><dd class="figure" style="margin:0">@(_adguard.Queries == 0 ? "–" : Format.Percent((double)_adguard.Blocked / _adguard.Queries))</dd></div>
+                <div><dt class="label">Avg. answer time</dt><dd class="figure" style="margin:0">@_adguard.AvgProcessingMs.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture)<small>ms</small></dd></div>
+                <div>
+                    <dt class="label">Protection</dt>
+                    <dd style="margin:0">
+                        @if (_adguard.ProtectionEnabled)
+                        {
+                            <span class="tag good"><Icon Name="circle-check" />On</span>
+                        }
+                        else
+                        {
+                            <span class="tag warn"><Icon Name="triangle-alert" />Off</span>
+                        }
+                    </dd>
+                </div>
+            </dl>
+        </section>
+
+        <section class="panel span-8" aria-labelledby="up-h">
+            <header class="panel-head"><h2 id="up-h">Upstream resolvers</h2><div class="meta">where AdGuard forwards</div></header>
+            <div class="panel-body flush table-wrap">
+                <table class="manifest">
+                    <thead><tr><th>Upstream</th><th class="num">Answers</th><th class="num">Avg. time</th></tr></thead>
+                    <tbody>
+                        @if (_adguard.Upstreams.Count == 0)
+                        {
+                            <tr><td colspan="3"><div class="empty"><b>No upstream statistics yet.</b></div></td></tr>
+                        }
+                        @foreach (var u in _adguard.Upstreams)
+                        {
+                            <tr>
+                                <td class="data">@u.Upstream</td>
+                                <td class="num data">@Format.Count(u.Responses)</td>
+                                <td class="num data">
+                                    @if (u.AvgMs > 250)
+                                    {
+                                        <span class="tag warn">@u.AvgMs.ToString("0") ms</span>
+                                    }
+                                    else
+                                    {
+                                        @(u.AvgMs.ToString("0") + " ms")
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="panel span-6" aria-labelledby="tc-h">
+            <header class="panel-head"><h2 id="tc-h">Busiest clients</h2></header>
+            <div class="panel-body flush"><CountTable Rows="_adguard.TopClients" Label="Client" Mono="true" /></div>
+        </section>
+
+        <section class="panel span-6" aria-labelledby="td-h">
+            <header class="panel-head"><h2 id="td-h">Most asked names</h2></header>
+            <div class="panel-body flush"><CountTable Rows="_adguard.TopDomains" Label="Name" Mono="true" /></div>
+        </section>
+    </div>
+}
+
+@code {
+    private HealthDto? _health;
+    private AdGuardDto? _adguard;
+    private Timer? _timer;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Live.Tick += OnTick;
+        await LoadAsync();
+        // AdGuard is polled every 10 s server-side; follow it.
+        _timer = new Timer(async _ => { await LoadAsync(); await InvokeAsync(StateHasChanged); }, null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
+    }
+
+    private async Task LoadAsync()
+    {
+        try
+        {
+            var h = Api.Health();
+            var a = Api.AdGuard();
+            _health = await h;
+            _adguard = await a;
+        }
+        catch (HttpRequestException)
+        {
+            // Keep the last good view; the live badge already shows the connection state.
+        }
+    }
+
+    private void OnTick(LiveTick t)
+    {
+        if (t.Health is null) return;
+        _health = t.Health;
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        Live.Tick -= OnTick;
+        _timer?.Dispose();
+    }
+}

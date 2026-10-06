@@ -1,0 +1,36 @@
+# Add this service to the lancache docker-compose.yml (prod-dump/docker-compose.yml), or run it
+# alongside with: docker compose -f docker-compose.yml -f docker-compose.lanwatch.yml up -d
+# It reuses the lancache .env (CACHE_ROOT, LANCACHE_IP, DNS_BIND_IP).
+services:
+  lanwatch:
+    build: ..                      # or: image: lanwatch:latest
+    restart: unless-stopped
+    ports:
+      - 8080:8080                  # 80/443 belong to monolithic
+    volumes:
+      - ${CACHE_ROOT}/logs:/logs:ro
+      - ${CACHE_ROOT}/cache:/cache:ro   # disk usage only
+      - lanwatch-data:/data          # named volume: owned by the container user
+    environment:
+      LANWATCH_PASSWORD: ${LANWATCH_PASSWORD:?set LANWATCH_PASSWORD in .env}
+      TZ: ${TZ:-Europe/London}
+      # Health probes (service names resolve inside the compose network)
+      LANCACHE_URL: http://monolithic
+      LANCACHE_DNS: dns
+      LANCACHE_IP: ${LANCACHE_IP}
+      CACHE_PATH: /cache
+      # AdGuard Home (the UPSTREAM_DNS of lancache-dns)
+      ADGUARD_URL: ${ADGUARD_URL:-}
+      ADGUARD_USER: ${ADGUARD_USER:-}
+      ADGUARD_PASSWORD: ${ADGUARD_PASSWORD:-}
+      # Requests via Docker's userland proxy arrive from the bridge gateway
+      DOCKER_GATEWAY_IPS: 172.17.0.1,172.18.0.1
+    # If lancache logs are not world-readable (ls -l ${CACHE_ROOT}/logs), uncomment to read them as root:
+    # user: "0"
+    deploy:
+      resources:
+        limits:
+          memory: 512m             # never compete with the cache for RAM
+
+volumes:
+  lanwatch-data:
