@@ -1,9 +1,16 @@
-# Add this service to the lancache docker-compose.yml (prod-dump/docker-compose.yml), or run it
-# alongside with: docker compose -f docker-compose.yml -f docker-compose.lanwatch.yml up -d
-# It reuses the lancache .env (CACHE_ROOT, LANCACHE_IP, DNS_BIND_IP).
+# LanWatch, added to the lancache stack.
+#
+# Copy this file into the lancache folder (next to its docker-compose.yml and .env), then:
+#   docker compose -f docker-compose.yml -f docker-compose.lanwatch.yml up -d --build
+#
+# Relative paths resolve from the lancache folder, so the build context defaults to a clone of the
+# LanWatch repo next to it (../lanwatch). Override with LANWATCH_SRC in .env.
+# It reuses the lancache .env (CACHE_ROOT, LANCACHE_IP, TZ).
 services:
   lanwatch:
-    build: ..                      # or: image: lanwatch:latest
+    build: ${LANWATCH_SRC:-../lanwatch}
+    image: lanwatch:local
+    pull_policy: build             # never try to pull from a registry (keeps update_containers.sh happy)
     restart: unless-stopped
     ports:
       - 8080:8080                  # 80/443 belong to monolithic

@@ -15,18 +15,26 @@ Stack: ASP.NET Core (.NET 10), Blazor WebAssembly, SignalR and SQLite. LanWatch 
 
 ## Run it next to lancache
 
-1. Put `deploy/docker-compose.lanwatch.yml` next to your lancache `docker-compose.yml`. Then add to the lancache `.env`:
+1. On the cache VM, clone this repo next to the lancache folder and copy the compose file into the lancache folder:
+   ```
+   cd ~ && git clone https://github.com/mortenfaerk/lanwatch.git   # ~/lanwatch next to ~/lancache
+   cp ~/lanwatch/deploy/docker-compose.lanwatch.yml ~/lancache/
+   ```
+2. Add to the lancache `.env`:
    ```
    LANWATCH_PASSWORD=choose-something
+   LANWATCH_SRC=../lanwatch          # only if the clone is somewhere else
    ADGUARD_URL=http://10.0.0.53      # optional: your AdGuard Home
    ADGUARD_USER=admin
    ADGUARD_PASSWORD=...
    ```
-2. Start it:
+3. Start it from the lancache folder:
    ```
    docker compose -f docker-compose.yml -f docker-compose.lanwatch.yml up -d --build
    ```
-3. Open `http://<cache-ip>:8080` and sign in with the crew password.
+4. Open `http://<cache-ip>:8080` and sign in with the crew password.
+
+To update later: `git -C ~/lanwatch pull`, then run the same `up -d --build` command.
 
 The first start imports the whole log history. Steam game names download from the SteamDepotFinder dataset (about 2.5 MB) and are kept in SQLite, so they still resolve when the event's internet is down. Game art is cached on first view.
 
